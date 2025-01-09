@@ -1,0 +1,62 @@
+use crate::{compute_centroid, PointCloudIterator, PointCloudPoint};
+use nalgebra::*;
+
+/// Estimates the affine transformation between the alignee and the target.
+///
+/// See this [paper from Dong et al.](https://doi.org/10.1049/iet-cvi.2016.0058)
+pub fn estimate_affine<'a, T>(
+    alignee: &mut PointCloudIterator<T, 3>,
+    target: &mut PointCloudIterator<T, 3>,
+    _: usize,
+) -> Affine3<T>
+where
+    T: Scalar + RealField + From<f32> + Copy,
+{
+    alignee.reset_iter();
+    target.reset_iter();
+
+    let subtract_mean = |mean_value: Point3<T>| {
+        return move |p: &PointCloudPoint<T, 3>| (p.pos.clone() - mean_value);
+    };
+
+    let mean_value_alignee = Point3::from(compute_centroid(alignee));
+    alignee.reset_iter();
+    let demeaned_alignee: Vec<Vector3<T>> =
+        alignee.map(subtract_mean(mean_value_alignee)).collect();
+
+    let mean_value_target = Point3::from(compute_centroid(target));
+    target.reset_iter();
+    let demeaned_target: Vec<Vector3<T>> = target.map(subtract_mean(mean_value_target)).collect();
+
+    let vec_sum2: Matrix3<T> = demeaned_alignee
+        .iter()
+        .zip(demeaned_target.iter())
+        .fold(Matrix3::zeros(), |m, (a, b)| m + b * a.transpose());
+    let matrix_sum_inv: Matrix3<T> = demeaned_alignee
+        .iter()
+        .fold(Matrix3::zeros(), |m, a| m + a * a.transpose());
+
+    let matrix_sum = matrix_sum_inv.try_inverse().unwrap();
+
+    #[allow(non_snake_case)]
+    let A = matrix_sum * vec_sum2;
+
+    let count = T::from(alignee.len() as f32);
+
+    alignee.reset_iter();
+
+    let translation = mean_value_target
+        - alignee.fold(Vector3::zeros(), |v, pcp| v + &A * pcp.pos.coords) * T::one() / count;
+
+    #[allow(non_snake_case)]
+    let mut M = A
+        .insert_fixed_rows::<1>(3, T::zero())
+        .insert_fixed_columns::<1>(3, T::zero());
+
+    M[12] = translation.x;
+    M[13] = translation.y;
+    M[14] = translation.z;
+    M[15] = T::one();
+
+    Affine3::from_matrix_unchecked(M)
+}

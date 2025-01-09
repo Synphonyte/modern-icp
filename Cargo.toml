@@ -1,0 +1,10 @@
+[package]
+name = "modern-icp"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+kdtree = "0.7.0"
+nalgebra = "0.33.2"
+num-traits = "0.2.19"
+statistical = "1"
