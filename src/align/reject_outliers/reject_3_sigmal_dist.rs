@@ -1,5 +1,5 @@
-use crate::reject_outliers::keep_all::keep_all;
 use crate::MaskedPointCloud;
+use crate::reject_outliers::keep_all::keep_all;
 use nalgebra::{RealField, Scalar};
 use num_traits::Float;
 use statistical::standard_scores;

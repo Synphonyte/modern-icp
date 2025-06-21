@@ -5,4 +5,16 @@
 [![MIT/Apache 2.0](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/synphonyte/modern-icp#license)
 [![Build Status](https://github.com/synphonyte/modern-icp/actions/workflows/cd.yml/badge.svg)](https://github.com/synphonyte/modern-icp/actions/workflows/cd.yml)
 
-<!-- cargo-rdme -->
+<!-- cargo-rdme start -->
+
+A modern modular pure Rust implementation of the Iterative Closest Point algorithm.
+
+### Example
+
+```rust
+use modern_icp::{};
+
+
+```
+
+<!-- cargo-rdme end -->

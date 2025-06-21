@@ -1,6 +1,6 @@
 use crate::correspondence::{CorrespondenceEstimator, Correspondences};
 use crate::{MaskedPointCloud, PointCloud, PointCloudPoint};
-use nalgebra::{point, vector, Point3, RealField, Scalar};
+use nalgebra::{Point3, RealField, Scalar, point, vector};
 use num_traits::{Float, One, Zero};
 use std::cell::{Cell, RefCell};
 

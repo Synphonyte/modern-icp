@@ -1,7 +1,7 @@
 use crate::{compute_centroid, demean_into_matrix};
 use nalgebra::{
-    allocator::Allocator, partial_cmp, Const, DefaultAllocator, DimSub, OVector, Point, RealField,
-    Scalar, SymmetricEigen, ToTypenum,
+    Const, DefaultAllocator, DimSub, OVector, Point, RealField, Scalar, SymmetricEigen, ToTypenum,
+    allocator::Allocator, partial_cmp,
 };
 
 /// Computes the principal component analysis of the point cloud.
