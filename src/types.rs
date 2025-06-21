@@ -76,6 +76,10 @@ impl<'a, T: Scalar + Copy, const D: usize> MaskedPointCloud<'a, T, D> {
         self.masked_and_ordered_to_plain_index.len()
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.masked_and_ordered_to_plain_index.is_empty()
+    }
+
     // pub fn iter_with_mask(&self) -> impl Iterator<Item = (&PointCloudPoint<T, D>, bool)> {
     //     self.point_cloud
     //         .iter()
@@ -89,7 +93,7 @@ impl<'a, T: Scalar + Copy, const D: usize> MaskedPointCloud<'a, T, D> {
 
     pub fn add_order(&mut self, indices: &[usize]) {
         self.masked_and_ordered_to_plain_index = indices
-            .into_iter()
+            .iter()
             .map(|i| self.masked_and_ordered_to_plain_index[*i])
             .collect();
     }
@@ -156,10 +160,7 @@ impl<'a, T: Scalar + Copy, const D: usize> From<&'a PointCloud<T, D>>
 
 impl<'a, T: Scalar + Copy, const D: usize> Clone for PointCloudIterator<'a, T, D> {
     fn clone(&self) -> Self {
-        Self {
-            target: self.target,
-            cur_index: self.cur_index,
-        }
+        *self
     }
 }
 
@@ -204,7 +205,7 @@ pub fn kd_tree_of_point_cloud<T, const D: usize>(
 where
     T: Scalar + RealField + Float + One + Zero,
 {
-    let mut kd_tree = KdTree::new(D as usize);
+    let mut kd_tree = KdTree::new(D);
 
     for (i, p) in point_cloud.iter().enumerate() {
         kd_tree.add(p.pos.coords.as_slice(), i).unwrap();

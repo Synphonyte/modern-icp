@@ -4,7 +4,7 @@ use num_traits::AsPrimitive;
 use std::ops::{Div, Mul};
 
 /// Computes the centroid (geometric center) of the point cloud.
-pub fn compute_centroid<'a, T, const D: usize>(
+pub fn compute_centroid<T, const D: usize>(
     points: impl Iterator<Item = Point<T, D>>,
 ) -> SVector<T, D>
 where
@@ -28,7 +28,7 @@ where
 
 /// Demeans the point cloud by subtracting the centroid from every point and returns the demeaned
 /// point cloud as a matrix.
-pub fn demean_into_matrix<'a, T, const D: usize>(
+pub fn demean_into_matrix<T, const D: usize>(
     points: impl Iterator<Item = Point<T, D>>,
     centroid: &SVector<T, D>,
 ) -> OMatrix<T, Const<D>, Dyn>
@@ -53,15 +53,12 @@ where
     for point in cloud.iter_mut() {
         point.pos = transform * point.pos;
 
-        point.norm = match point.norm {
-            Some(norm) => Some(transform * norm),
-            None => None,
-        };
+        point.norm = point.norm.map(|norm| transform * norm);
     }
 }
 
 /// See the [paper from Dong et al.](https://doi.org/10.1049/iet-cvi.2016.0058)
-pub fn golden_section_search<'a, T>(f: &dyn Fn(T) -> T, a: T, b: T, tol: Option<T>) -> T
+pub fn golden_section_search<T>(f: &dyn Fn(T) -> T, a: T, b: T, tol: Option<T>) -> T
 where
     T: Scalar + RealField + Copy,
     f32: AsPrimitive<T>,
@@ -89,7 +86,7 @@ where
     new_a // (new_b + new_a) * T::from(0.5);
 }
 
-pub fn sum_squared_distances<T>(distances: &Vec<T>, x: Option<T>) -> T
+pub fn sum_squared_distances<T>(distances: &[T], x: Option<T>) -> T
 where
     T: Scalar + RealField + Copy,
     usize: AsPrimitive<T>,

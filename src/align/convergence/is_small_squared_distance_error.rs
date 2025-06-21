@@ -4,7 +4,7 @@ use num_traits::AsPrimitive;
 
 /// Converge if the sum of the squared distances between the alignee and the target has
 /// decreased by only a small amount.
-pub fn is_small_squared_distance_error<'a, T, M>(
+pub fn is_small_squared_distance_error<T, M>(
     distances_target: &Vec<T>,
     distances_alignee: &Vec<T>,
     _: &M,

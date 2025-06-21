@@ -1,4 +1,4 @@
-use crate::{MaskedPointCloud, golden_section_search, sum_squared_distances};
+use crate::{golden_section_search, sum_squared_distances, MaskedPointCloud};
 use nalgebra::{RealField, Scalar};
 use num_traits::{AsPrimitive, Float, One};
 use std::cmp::Ordering;
@@ -9,14 +9,14 @@ use std::cmp::Ordering;
 pub fn reject_overlapping_ratios<T, const D: usize>(
     x: &mut MaskedPointCloud<T, D>,
     y: &mut MaskedPointCloud<T, D>,
-    distances: &Vec<T>,
+    distances: &[T],
 ) -> Vec<bool>
 where
     T: Scalar + RealField + Float,
     usize: AsPrimitive<T>,
     f32: AsPrimitive<T>,
 {
-    let (sorted_indices, sorted_distances) = sort_by_distance(&distances);
+    let (sorted_indices, sorted_distances) = sort_by_distance(distances);
 
     let count: T = distances.len().as_();
     let ratio = calculate_ratio(distances);
@@ -39,7 +39,7 @@ where
     mask
 }
 
-fn calculate_ratio<T>(distances: &Vec<T>) -> T
+fn calculate_ratio<T>(distances: &[T]) -> T
 where
     T: Scalar + RealField + Float + One,
     f32: AsPrimitive<T>,
@@ -53,7 +53,7 @@ where
     golden_section_search(&sum_squared_distances_ratio_fn, 0.68.as_(), 1.0.as_(), None)
 }
 
-fn sort_by_distance<T>(distances: &Vec<T>) -> (Vec<usize>, Vec<T>)
+fn sort_by_distance<T>(distances: &[T]) -> (Vec<usize>, Vec<T>)
 where
     T: Scalar + RealField + Float + PartialOrd,
 {

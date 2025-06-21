@@ -5,7 +5,7 @@ const MIN_ANGLE_THRESHOLD: f32 = 0.01;
 
 /// Converge if the translation and the rotation of the alignee to the target transformation
 /// are too small.
-pub fn is_small_isometry<'a, T>(
+pub fn is_small_isometry<T>(
     _: &Vec<T>,
     _: &Vec<T>,
     isometry: &IsometryMatrix3<T>,

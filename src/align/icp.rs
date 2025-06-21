@@ -1,5 +1,5 @@
 use crate::correspondence::{CorrespondenceEstimator, Correspondences};
-use crate::{MaskedPointCloud, PointCloud, transform_point_cloud};
+use crate::{transform_point_cloud, MaskedPointCloud, PointCloud};
 use cfg_if::cfg_if;
 use nalgebra::*;
 use num_traits::{Float, One, Zero};
@@ -259,13 +259,13 @@ where
             }
         }
 
-        let mut masked_alignee = &mut alignee_point_cloud;
+        let masked_alignee = &mut alignee_point_cloud;
         masked_alignee.extend(&corresponding_alignee_point_cloud);
 
-        let mut masked_target = &mut corresponding_target_point_cloud;
+        let masked_target = &mut corresponding_target_point_cloud;
         masked_target.extend(&target_point_cloud);
 
-        let step_transform = estimate_step_transform(&mut masked_alignee, &mut masked_target, i);
+        let step_transform = estimate_step_transform(masked_alignee, masked_target, i);
 
         transform_point_cloud(&mut aligned, &step_transform);
 
@@ -286,5 +286,5 @@ where
         }
     }
 
-    return transform;
+    transform
 }

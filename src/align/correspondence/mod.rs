@@ -5,8 +5,8 @@ mod nearest_neighbor;
 use crate::{MaskedPointCloud, PointCloud};
 pub use bidirectional_distance::*;
 pub use cylinder::*;
-use kdtree::KdTree;
 use kdtree::distance::squared_euclidean;
+use kdtree::KdTree;
 use nalgebra::*;
 pub use nearest_neighbor::*;
 use num_traits::{Float, One, Zero};
@@ -53,15 +53,15 @@ where
         corresponding_target_point_cloud: MaskedPointCloud<'a, T, D>,
         alignee_to_target_distances: Vec<T>,
     ) -> Self {
-        let mut empty_alignee_cloud = MaskedPointCloud::new(&alignee);
+        let mut empty_alignee_cloud = MaskedPointCloud::new(alignee);
         empty_alignee_cloud.set_empty();
 
         // please note that in non-empty cases this point cloud iterator needs to refer to target!
-        let mut empty_target_cloud = MaskedPointCloud::new(&alignee);
+        let mut empty_target_cloud = MaskedPointCloud::new(alignee);
         empty_target_cloud.set_empty();
 
         Self {
-            alignee_point_cloud: MaskedPointCloud::new(&alignee),
+            alignee_point_cloud: MaskedPointCloud::new(alignee),
             corresponding_target_point_cloud,
             target_point_cloud: empty_target_cloud,
             corresponding_alignee_point_cloud: empty_alignee_cloud,
@@ -116,7 +116,7 @@ where
         distances.push(distance);
     }
 
-    let mut point_cloud = MaskedPointCloud::new(&data_set_y);
+    let mut point_cloud = MaskedPointCloud::new(data_set_y);
     point_cloud.add_order(&ordered_indices);
 
     (point_cloud, distances)

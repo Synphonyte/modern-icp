@@ -1,7 +1,7 @@
 use crate::correspondence::{
-    CorrespondenceEstimator, Correspondences, get_ordered_correspondences_and_distances_nn,
+    get_ordered_correspondences_and_distances_nn, CorrespondenceEstimator, Correspondences,
 };
-use crate::{MaskedPointCloud, PointCloud, kd_tree_of_point_cloud};
+use crate::{kd_tree_of_point_cloud, MaskedPointCloud, PointCloud};
 use kdtree::KdTree;
 use nalgebra::{RealField, Scalar};
 use num_traits::{Float, One, Zero};
@@ -23,7 +23,7 @@ where
 {
     fn new(target: &'a PointCloud<T, 3>) -> Self {
         BidirectionalDistance {
-            target_tree: kd_tree_of_point_cloud(&target),
+            target_tree: kd_tree_of_point_cloud(target),
         }
     }
 
@@ -37,15 +37,15 @@ where
 
         let (corresponding_alignee_point_cloud, target_to_alignee_distances) =
             get_ordered_correspondences_and_distances_nn(
-                &kd_tree_of_point_cloud(&alignee),
+                &kd_tree_of_point_cloud(alignee),
                 target,
                 alignee,
             );
 
         Correspondences {
-            alignee_point_cloud: MaskedPointCloud::new(&alignee),
+            alignee_point_cloud: MaskedPointCloud::new(alignee),
             corresponding_target_point_cloud,
-            target_point_cloud: MaskedPointCloud::new(&target),
+            target_point_cloud: MaskedPointCloud::new(target),
             corresponding_alignee_point_cloud,
             alignee_to_target_distances,
             target_to_alignee_distances,

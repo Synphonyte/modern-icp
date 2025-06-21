@@ -1,4 +1,4 @@
-use crate::{MaskedPointCloud, compute_centroid, demean_into_matrix};
+use crate::{compute_centroid, demean_into_matrix, MaskedPointCloud};
 use nalgebra::*;
 
 /// Estimates the isometry between the alignee and the target using the SVD algorithm.
@@ -42,7 +42,7 @@ where
     IsometryMatrix3::from_parts(translation, rotation)
 }
 
-pub fn estimate_similarity<'a, T>(
+pub fn estimate_similarity<T>(
     source: &mut MaskedPointCloud<T, 3>,
     target: &mut MaskedPointCloud<T, 3>,
 ) -> SimilarityMatrix3<T>

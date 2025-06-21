@@ -6,7 +6,7 @@ use num_traits::Float;
 pub fn keep_all<T, const D: usize>(
     _: &mut MaskedPointCloud<T, D>,
     _: &mut MaskedPointCloud<T, D>,
-    distances: &Vec<T>,
+    distances: &[T],
 ) -> Vec<bool>
 where
     T: Scalar + RealField + From<f32> + Float,

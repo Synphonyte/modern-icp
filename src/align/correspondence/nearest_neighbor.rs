@@ -1,7 +1,7 @@
 use crate::correspondence::{
-    CorrespondenceEstimator, Correspondences, get_ordered_correspondences_and_distances_nn,
+    get_ordered_correspondences_and_distances_nn, CorrespondenceEstimator, Correspondences,
 };
-use crate::{PointCloud, kd_tree_of_point_cloud};
+use crate::{kd_tree_of_point_cloud, PointCloud};
 use kdtree::KdTree;
 use nalgebra::{RealField, Scalar};
 use num_traits::{Float, One, Zero};
@@ -19,7 +19,7 @@ where
 {
     fn new(target: &'a PointCloud<T, 3>) -> Self {
         NearestNeighbor {
-            tree: kd_tree_of_point_cloud(&target),
+            tree: kd_tree_of_point_cloud(target),
         }
     }
 

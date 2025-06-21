@@ -1,7 +1,7 @@
 use crate::{compute_centroid, demean_into_matrix};
 use nalgebra::{
-    Const, DefaultAllocator, DimSub, OVector, Point, RealField, Scalar, SymmetricEigen, ToTypenum,
-    allocator::Allocator, partial_cmp,
+    allocator::Allocator, partial_cmp, Const, DefaultAllocator, DimSub, OVector, Point, RealField,
+    Scalar, SymmetricEigen, ToTypenum,
 };
 
 /// Computes the principal component analysis of the point cloud.
@@ -29,7 +29,7 @@ where
     Const<D>: ToTypenum + DimSub<Const<1>>,
     DefaultAllocator: Allocator<<Const<D> as DimSub<Const<1>>>::Output>,
 {
-    let demeaned = demean_into_matrix(points, &centroid);
+    let demeaned = demean_into_matrix(points, centroid);
 
     // TODO : this is a symmetric matrix and eigen decomp only looks at one half (see nalgebra docs) => only compute that half.
     let covariant_matrix = &demeaned * &demeaned.transpose();
