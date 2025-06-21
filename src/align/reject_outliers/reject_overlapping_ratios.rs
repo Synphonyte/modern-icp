@@ -1,4 +1,4 @@
-use crate::{golden_section_search, sum_squared_distances, MaskedPointCloud};
+use crate::{MaskedPointCloud, golden_section_search, sum_squared_distances};
 use nalgebra::{RealField, Scalar};
 use num_traits::{AsPrimitive, Float, One};
 use std::cmp::Ordering;

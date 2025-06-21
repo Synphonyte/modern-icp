@@ -1,5 +1,5 @@
 use crate::correspondence::{CorrespondenceEstimator, Correspondences};
-use crate::{transform_point_cloud, MaskedPointCloud, PointCloud};
+use crate::{MaskedPointCloud, PointCloud, transform_point_cloud};
 use cfg_if::cfg_if;
 use nalgebra::*;
 use num_traits::{Float, One, Zero};

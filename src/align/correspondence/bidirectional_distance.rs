@@ -1,7 +1,7 @@
 use crate::correspondence::{
-    get_ordered_correspondences_and_distances_nn, CorrespondenceEstimator, Correspondences,
+    CorrespondenceEstimator, Correspondences, get_ordered_correspondences_and_distances_nn,
 };
-use crate::{kd_tree_of_point_cloud, MaskedPointCloud, PointCloud};
+use crate::{MaskedPointCloud, PointCloud, kd_tree_of_point_cloud};
 use kdtree::KdTree;
 use nalgebra::{RealField, Scalar};
 use num_traits::{Float, One, Zero};

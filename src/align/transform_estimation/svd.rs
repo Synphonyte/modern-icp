@@ -1,4 +1,4 @@
-use crate::{compute_centroid, demean_into_matrix, MaskedPointCloud};
+use crate::{MaskedPointCloud, compute_centroid, demean_into_matrix};
 use nalgebra::*;
 
 /// Estimates the isometry between the alignee and the target using the SVD algorithm.
