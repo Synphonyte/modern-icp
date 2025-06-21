@@ -1,7 +1,7 @@
 use crate::correspondence::{
     get_ordered_correspondences_and_distances_nn, CorrespondenceEstimator, Correspondences,
 };
-use crate::{kd_tree_of_point_cloud, PointCloud, PointCloudIterator};
+use crate::{kd_tree_of_point_cloud, MaskedPointCloud, PointCloud};
 use kdtree::KdTree;
 use nalgebra::{RealField, Scalar};
 use num_traits::{Float, One, Zero};
@@ -32,10 +32,10 @@ where
         alignee: &'b PointCloud<T, 3>,
         target: &'b PointCloud<T, 3>,
     ) -> Correspondences<'b, T, 3> {
-        let (corresponding_target_points_iter, alignee_to_target_distances) =
+        let (corresponding_target_point_cloud, alignee_to_target_distances) =
             get_ordered_correspondences_and_distances_nn(&self.target_tree, alignee, target);
 
-        let (corresponding_alignee_points_iter, target_to_alignee_distances) =
+        let (corresponding_alignee_point_cloud, target_to_alignee_distances) =
             get_ordered_correspondences_and_distances_nn(
                 &kd_tree_of_point_cloud(&alignee),
                 target,
@@ -43,10 +43,10 @@ where
             );
 
         Correspondences {
-            alignee_points_iter: PointCloudIterator::new(&alignee),
-            corresponding_target_points_iter,
-            target_points_iter: PointCloudIterator::new(&target),
-            corresponding_alignee_points_iter,
+            alignee_point_cloud: MaskedPointCloud::new(&alignee),
+            corresponding_target_point_cloud,
+            target_point_cloud: MaskedPointCloud::new(&target),
+            corresponding_alignee_point_cloud,
             alignee_to_target_distances,
             target_to_alignee_distances,
         }

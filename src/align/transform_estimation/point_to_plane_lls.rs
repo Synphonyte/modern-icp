@@ -1,6 +1,6 @@
 use nalgebra::*;
 
-use crate::{Plane, PointCloudIterator};
+use crate::{MaskedPointCloud, Plane};
 
 /// Estimates the isometry between the alignee and the target using the Point-to-Plane-LLS algorithm.
 ///
@@ -8,20 +8,17 @@ use crate::{Plane, PointCloudIterator};
 /// See also this [paper from Low](https://www.comp.nus.edu.sg/~lowkl/publications/lowk_point-to-plane_icp_techrep.pdf)
 #[allow(non_snake_case)]
 pub fn estimate_isometry<T>(
-    alignee: &mut PointCloudIterator<T, 3>,
-    target: &mut PointCloudIterator<T, 3>,
+    alignee: &mut MaskedPointCloud<T, 3>,
+    target: &mut MaskedPointCloud<T, 3>,
     _: usize,
 ) -> IsometryMatrix3<T>
 where
     T: Scalar + RealField + Copy,
 {
-    alignee.reset_iter();
-    target.reset_iter();
-
     let mut ATA = Matrix6::<T>::zeros();
     let mut ATb = Vector6::<T>::zeros();
 
-    for (a, t) in alignee.zip(target) {
+    for (a, t) in alignee.iter().zip(target.iter()) {
         let pos_align = a.pos;
 
         let pos_target = t.pos;
@@ -118,19 +115,16 @@ where
 }
 
 pub fn estimate_scale_point_to_plane<'a, T>(
-    alignee: &mut PointCloudIterator<T, 3>,
-    target: &mut PointCloudIterator<T, 3>,
+    alignee: &mut MaskedPointCloud<'a, T, 3>,
+    target: &mut MaskedPointCloud<'a, T, 3>,
 ) -> Matrix3<T>
 where
     T: Scalar + RealField + Copy + From<f32>,
     f64: From<T>,
 {
-    alignee.reset_iter();
-    target.reset_iter();
-
     let mut scale = Vector3::zeros();
 
-    for (a, t) in alignee.zip(target) {
+    for (a, t) in alignee.iter().zip(target.iter()) {
         let a_mul_n = a.pos.coords.component_mul(&t.norm.unwrap());
 
         let x = a_mul_n.x;

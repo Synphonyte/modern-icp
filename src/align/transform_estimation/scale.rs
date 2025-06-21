@@ -1,28 +1,24 @@
+use crate::MaskedPointCloud;
 use nalgebra::*;
-use crate::PointCloudIterator;
 
 /// Estimates the non-uniform scale between the alignee and the target.
 ///
 /// See [the math](https://www.mathcha.io/editor/2OV22T3mi5DtZw4yWZFV82O7DcDQvJYBhQWyNl0?embedded=true)
 pub fn estimate_scale_vector<T, const D: usize>(
-    alignee: &mut PointCloudIterator<T, D>,
-    target: &mut PointCloudIterator<T, D>,
+    alignee: &mut MaskedPointCloud<T, D>,
+    target: &mut MaskedPointCloud<T, D>,
 ) -> SVector<T, D>
 where
     T: Scalar + RealField + Copy,
 {
-    alignee.reset_iter();
-    target.reset_iter();
-
     let numerator = alignee
-        .zip(target)
+        .iter()
+        .zip(target.iter())
         .fold(SVector::<T, D>::zeros(), |r, (a, t)| {
             r + a.pos.coords.component_mul(&t.pos.coords)
         });
 
-    alignee.reset_iter();
-
-    let denominator = alignee.fold(SVector::<T, D>::zeros(), |r, a| {
+    let denominator = alignee.iter().fold(SVector::<T, D>::zeros(), |r, a| {
         r + a.pos.coords.component_mul(&a.pos.coords)
     });
 
@@ -30,8 +26,8 @@ where
 }
 
 pub fn estimate_scale<T, const D: usize>(
-    alignee: &mut PointCloudIterator<T, D>,
-    target: &mut PointCloudIterator<T, D>,
+    alignee: &mut MaskedPointCloud<T, D>,
+    target: &mut MaskedPointCloud<T, D>,
     _: usize,
 ) -> SMatrix<T, D, D>
 where

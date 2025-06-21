@@ -1,23 +1,21 @@
-use crate::{PointCloud, PointCloudIterator};
+use crate::PointCloud;
 use nalgebra::*;
 use num_traits::AsPrimitive;
 use std::ops::{Div, Mul};
 
 /// Computes the centroid (geometric center) of the point cloud.
 pub fn compute_centroid<'a, T, const D: usize>(
-    cloud: &mut PointCloudIterator<T, D>,
+    points: impl Iterator<Item = Point<T, D>>,
 ) -> SVector<T, D>
 where
     T: RealField + Copy,
     SVector<T, D>: Div<T, Output = SVector<T, D>>,
 {
-    cloud.reset_iter();
-
     let mut centroid = SVector::zeros();
 
     let mut count = T::zero();
-    for pt in cloud {
-        centroid += pt.pos.coords;
+    for pt in points {
+        centroid += pt.coords;
         count += T::one();
     }
 
@@ -31,31 +29,26 @@ where
 /// Demeans the point cloud by subtracting the centroid from every point and returns the demeaned
 /// point cloud as a matrix.
 pub fn demean_into_matrix<'a, T, const D: usize>(
-    cloud: &mut PointCloudIterator<T, D>,
+    points: impl Iterator<Item = Point<T, D>>,
     centroid: &SVector<T, D>,
 ) -> OMatrix<T, Const<D>, Dyn>
 where
     T: Scalar + RealField + Copy,
 {
-    cloud.reset_iter();
-
     let mut demeaned_cloud = vec![];
 
-    for pt in cloud {
-        demeaned_cloud.push(pt.pos.coords - centroid);
+    for pt in points {
+        demeaned_cloud.push(pt.coords - centroid);
     }
 
     Matrix::from_columns(demeaned_cloud.as_slice())
 }
 
 /// Transforms every point in the point cloud using the given transform.
-pub fn transform_point_cloud<'a, T, M, const D: usize>(
-    cloud: &mut PointCloud<T, D>,
-    transform: &'a M,
-) where
+pub fn transform_point_cloud<T, M, const D: usize>(cloud: &mut PointCloud<T, D>, transform: M)
+where
     T: Scalar + RealField + Copy,
-    M: 'a,
-    &'a M: Mul<Point<T, D>, Output = Point<T, D>> + Mul<SVector<T, D>, Output = SVector<T, D>>,
+    M: Mul<Point<T, D>, Output = Point<T, D>> + Mul<SVector<T, D>, Output = SVector<T, D>> + Copy,
 {
     for point in cloud.iter_mut() {
         point.pos = transform * point.pos;

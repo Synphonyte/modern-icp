@@ -1,22 +1,22 @@
-use crate::{compute_centroid, demean_into_matrix, PointCloudIterator};
+use crate::{compute_centroid, demean_into_matrix, MaskedPointCloud};
 use nalgebra::*;
 
 /// Estimates the isometry between the alignee and the target using the SVD algorithm.
 ///
 /// See this [implementation of the algorithm from PointCloudLibrary](https://github.com/PointCloudLibrary/pcl/blob/d242fcbdbb53efc7de48c9159343432a2194a27c/registration/include/pcl/registration/impl/transformation_estimation_svd.hpp)
 pub fn estimate_isometry<T>(
-    mut alignee: &mut PointCloudIterator<T, 3>,
-    mut target: &mut PointCloudIterator<T, 3>,
+    alignee: &mut MaskedPointCloud<T, 3>,
+    target: &mut MaskedPointCloud<T, 3>,
     _: usize,
 ) -> IsometryMatrix3<T>
 where
     T: Scalar + RealField + Copy,
 {
-    let alignee_centroid = compute_centroid(&mut alignee);
-    let target_centroid = compute_centroid(&mut target);
+    let alignee_centroid = compute_centroid(alignee.points_iter());
+    let target_centroid = compute_centroid(target.points_iter());
 
-    let demeaned_alignee = demean_into_matrix(&mut alignee, &alignee_centroid);
-    let demeaned_target = demean_into_matrix(&mut target, &target_centroid);
+    let demeaned_alignee = demean_into_matrix(alignee.points_iter(), &alignee_centroid);
+    let demeaned_target = demean_into_matrix(target.points_iter(), &target_centroid);
 
     let covariant_matrix = demeaned_alignee * demeaned_target.transpose();
 
@@ -43,18 +43,18 @@ where
 }
 
 pub fn estimate_similarity<'a, T>(
-    mut source: &mut PointCloudIterator<T, 3>,
-    mut target: &mut PointCloudIterator<T, 3>,
+    source: &mut MaskedPointCloud<T, 3>,
+    target: &mut MaskedPointCloud<T, 3>,
 ) -> SimilarityMatrix3<T>
 where
     T: Scalar + RealField + Copy,
     // &'a T: Mul<&'a T, Output=&'a T>,
 {
-    let source_centroid = compute_centroid(&mut source);
-    let target_centroid = compute_centroid(&mut target);
+    let source_centroid = compute_centroid(source.points_iter());
+    let target_centroid = compute_centroid(target.points_iter());
 
-    let demeaned_source = demean_into_matrix(&mut source, &source_centroid);
-    let demeaned_target = demean_into_matrix(&mut target, &target_centroid);
+    let demeaned_source = demean_into_matrix(source.points_iter(), &source_centroid);
+    let demeaned_target = demean_into_matrix(target.points_iter(), &target_centroid);
 
     let covariant_matrix = &demeaned_source * demeaned_target.transpose();
 

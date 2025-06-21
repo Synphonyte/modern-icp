@@ -2,7 +2,7 @@ mod bidirectional_distance;
 mod cylinder;
 mod nearest_neighbor;
 
-use crate::{PointCloud, PointCloudIterator};
+use crate::{MaskedPointCloud, PointCloud};
 pub use bidirectional_distance::*;
 pub use cylinder::*;
 use kdtree::distance::squared_euclidean;
@@ -18,27 +18,27 @@ where
     T: Copy + PartialEq + Debug + 'static,
 {
     /// Iterator over the points of the alignee that have a correspondence point in the target
-    /// (found in the `corresponding_target_points_iter`).
-    pub alignee_points_iter: PointCloudIterator<'a, T, D>,
+    /// (found in the `corresponding_target_point_cloud`).
+    pub alignee_point_cloud: MaskedPointCloud<'a, T, D>,
 
-    /// Every point in this iterator corresponds to the point in the `alignee_points_iter` with the same index.
-    pub corresponding_target_points_iter: PointCloudIterator<'a, T, D>,
+    /// Every point in this iterator corresponds to the point in the `alignee_point_cloud` with the same index.
+    pub corresponding_target_point_cloud: MaskedPointCloud<'a, T, D>,
 
     /// Iterator over the points of the target that have a corresponcence point in the alignee.
-    /// (found in the `corresponding_alignee_points_iter`).
+    /// (found in the `corresponding_alignee_point_cloud`).
     /// This is only used by bidrectional distance correspondence estimators.
-    pub target_points_iter: PointCloudIterator<'a, T, D>,
+    pub target_point_cloud: MaskedPointCloud<'a, T, D>,
 
-    /// Every point in this iterator corresponds to the point in the `target_points_iter` with the same index.
+    /// Every point in this iterator corresponds to the point in the `target_point_cloud` with the same index.
     /// This is only used by bidrectional distance correspondence estimators.
-    pub corresponding_alignee_points_iter: PointCloudIterator<'a, T, D>,
+    pub corresponding_alignee_point_cloud: MaskedPointCloud<'a, T, D>,
 
     /// Distances between the points of the alignee and the corresponding points in the target.
-    /// Refers to the points in the `alignee_points_iter` and `corresponding_target_points_iter`.
+    /// Refers to the points in the `alignee_point_cloud` and `corresponding_target_point_cloud`.
     pub alignee_to_target_distances: Vec<T>,
 
     /// Distances between the points of the target and the corresponding points in the alignee.
-    /// Refers to the points in the `target_points_iter` and `corresponding_alignee_points_iter`.
+    /// Refers to the points in the `target_point_cloud` and `corresponding_alignee_point_cloud`.
     /// This is only used by bidrectional distance correspondence estimators.
     pub target_to_alignee_distances: Vec<T>,
 }
@@ -50,21 +50,21 @@ where
     /// Use this for simple one-way correspondence estimators.
     pub fn from_simple_one_way_correspondences(
         alignee: &'a PointCloud<T, D>,
-        corresponding_target_points_iter: PointCloudIterator<'a, T, D>,
+        corresponding_target_point_cloud: MaskedPointCloud<'a, T, D>,
         alignee_to_target_distances: Vec<T>,
     ) -> Self {
-        let mut empty_alignee_iterator = PointCloudIterator::new(&alignee);
-        empty_alignee_iterator.set_empty();
+        let mut empty_alignee_cloud = MaskedPointCloud::new(&alignee);
+        empty_alignee_cloud.set_empty();
 
         // please note that in non-empty cases this point cloud iterator needs to refer to target!
-        let mut empty_target_iterator = PointCloudIterator::new(&alignee);
-        empty_target_iterator.set_empty();
+        let mut empty_target_cloud = MaskedPointCloud::new(&alignee);
+        empty_target_cloud.set_empty();
 
         Self {
-            alignee_points_iter: PointCloudIterator::new(&alignee),
-            corresponding_target_points_iter,
-            target_points_iter: empty_target_iterator,
-            corresponding_alignee_points_iter: empty_alignee_iterator,
+            alignee_point_cloud: MaskedPointCloud::new(&alignee),
+            corresponding_target_point_cloud,
+            target_point_cloud: empty_target_cloud,
+            corresponding_alignee_point_cloud: empty_alignee_cloud,
             alignee_to_target_distances,
             target_to_alignee_distances: vec![],
         }
@@ -94,13 +94,13 @@ where
 }
 
 /// For every point in `data_set_x` finds the nearest point in `data_set_y` using the KD-Tree `tree`.
-/// Returns an iterator over the points of `data_set_y` that correspond to the points in `data_set_x`
+/// Returns a masked point_cloud referencing `data_set_y` that correspond to the points in `data_set_x`
 /// together with the distances between the points of `data_set_x` and the corresponding points in `data_set_y`.
 pub fn get_ordered_correspondences_and_distances_nn<'a, T>(
     tree: &KdTree<T, usize, &[T]>,
     data_set_x: &'a PointCloud<T, 3>,
     data_set_y: &'a PointCloud<T, 3>,
-) -> (PointCloudIterator<'a, T, 3>, Vec<T>)
+) -> (MaskedPointCloud<'a, T, 3>, Vec<T>)
 where
     T: Scalar + RealField + Float + One + Zero,
 {
@@ -116,8 +116,8 @@ where
         distances.push(distance);
     }
 
-    let mut iter = PointCloudIterator::new(&data_set_y);
-    iter.add_order(&ordered_indices);
+    let mut point_cloud = MaskedPointCloud::new(&data_set_y);
+    point_cloud.add_order(&ordered_indices);
 
-    (iter, distances)
+    (point_cloud, distances)
 }

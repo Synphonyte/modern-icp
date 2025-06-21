@@ -1,4 +1,4 @@
-use crate::{golden_section_search, sum_squared_distances, PointCloudIterator};
+use crate::{golden_section_search, sum_squared_distances, MaskedPointCloud};
 use nalgebra::{RealField, Scalar};
 use num_traits::{AsPrimitive, Float, One};
 use std::cmp::Ordering;
@@ -7,8 +7,8 @@ use std::cmp::Ordering;
 ///
 /// See this [paper from Dong et al.](https://doi.org/10.1049/iet-cvi.2016.0058) for more details.
 pub fn reject_overlapping_ratios<T, const D: usize>(
-    x: &mut PointCloudIterator<T, D>,
-    y: &mut PointCloudIterator<T, D>,
+    x: &mut MaskedPointCloud<T, D>,
+    y: &mut MaskedPointCloud<T, D>,
     distances: &Vec<T>,
 ) -> Vec<bool>
 where

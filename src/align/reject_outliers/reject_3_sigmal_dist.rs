@@ -1,5 +1,5 @@
 use crate::reject_outliers::keep_all::keep_all;
-use crate::PointCloudIterator;
+use crate::MaskedPointCloud;
 use nalgebra::{RealField, Scalar};
 use num_traits::Float;
 use statistical::standard_scores;
@@ -8,8 +8,8 @@ use statistical::standard_scores;
 ///
 /// Rejects points that are more than 3 standard deviations away from the mean.
 pub fn reject_3_sigma_dist<T, const D: usize>(
-    x: &mut PointCloudIterator<T, D>,
-    y: &mut PointCloudIterator<T, D>,
+    x: &mut MaskedPointCloud<T, D>,
+    y: &mut MaskedPointCloud<T, D>,
     distances: &Vec<T>,
 ) -> Vec<bool>
 where

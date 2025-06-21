@@ -1,6 +1,6 @@
-pub mod correspondence;
-pub mod reject_outliers;
 pub mod convergence;
-pub mod transform_estimation;
+pub mod correspondence;
 pub mod icp;
 pub mod pca;
+pub mod reject_outliers;
+pub mod transform_estimation;

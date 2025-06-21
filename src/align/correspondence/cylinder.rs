@@ -1,5 +1,5 @@
 use crate::correspondence::{CorrespondenceEstimator, Correspondences};
-use crate::{PointCloud, PointCloudIterator, PointCloudPoint};
+use crate::{MaskedPointCloud, PointCloud, PointCloudPoint};
 use nalgebra::{point, vector, Point3, RealField, Scalar};
 use num_traits::{Float, One, Zero};
 use std::cell::{Cell, RefCell};
@@ -100,11 +100,11 @@ where
             distances.push(Float::abs(d));
         }
 
-        let target_iter =
-            unsafe { PointCloudIterator::new(self.point_cloud.as_ptr().as_ref().unwrap()) };
+        let target_cloud =
+            unsafe { MaskedPointCloud::new(self.point_cloud.as_ptr().as_ref().unwrap()) };
 
         self.radius.set(self.radius.get() + sum / count);
 
-        Correspondences::from_simple_one_way_correspondences(alignee, target_iter, distances)
+        Correspondences::from_simple_one_way_correspondences(alignee, target_cloud, distances)
     }
 }
