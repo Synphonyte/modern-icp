@@ -11,7 +11,7 @@ pub fn estimate_isometry<T>(
     alignee: &mut MaskedPointCloud<T, 3>,
     target: &mut MaskedPointCloud<T, 3>,
     _: usize,
-) -> IsometryMatrix3<T>
+) -> Isometry3<T>
 where
     T: Scalar + RealField + Copy,
 {
@@ -105,9 +105,9 @@ where
     let beta = x[1];
     let gamma = x[2];
 
-    IsometryMatrix3::from_parts(
+    Isometry3::from_parts(
         Translation3::new(x[3], x[4], x[5]),
-        Rotation3::from_matrix(&matrix![
+        UnitQuaternion::from_matrix(&matrix![
             T::one(), -gamma, beta;
             gamma, T::one(), -alpha;
             -beta, alpha, T::one()]),

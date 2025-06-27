@@ -65,11 +65,7 @@ where
                 .log_static("/", &rerun::ViewCoordinates::RIGHT_HAND_Y_UP())
                 .unwrap();
 
-            let mut rr_log_aligned = || {
-                crate::RR.log("aligned", &aligned.iter().map(|pt| pt3_array(pt.pos))).unwrap();
-            };
-
-            rr_log_aligned();
+            crate::rr_log_cloud("alignee", &aligned);
         }
     }
 
@@ -90,50 +86,45 @@ where
             target_to_alignee_distances,
         } = correspondence_estimator.find_correspondences(&aligned, target);
 
-        #[cfg(feature = "rerun")]
-        {
-            let mut alignee_points = vec![];
-            let mut alignee_arrows = vec![];
-            for (alignee_pt, corr_pt) in &alignee_point_cloud
-                .iter()
-                .zip(&corresponding_target_point_cloud.iter())
-            {
-                alignee_points.push(pt3_array(alignee_pt.pos));
-                alignee_arrows.push(vec3_array(corr_pt.pos - alignee_pt.pos));
-            }
+        cfg_if! {
+            if #[cfg(feature = "rerun")] {
+                let mut alignee_points = vec![];
+                let mut alignee_arrows = vec![];
+                for (alignee_pt, corr_pt) in alignee_point_cloud
+                    .iter()
+                    .zip(corresponding_target_point_cloud.iter())
+                {
+                    alignee_points.push(pt3_array(alignee_pt.pos));
+                    alignee_arrows.push(vec3_array(corr_pt.pos - alignee_pt.pos));
+                }
 
-            crate::RR
-                .log("corr/point", &rerun::Points3D::new(&alignee_points))
-                .unwrap();
-            crate::RR
-                .log(
-                    "corr/arrow",
-                    &rerun::Arrows3D::from_vectors(&alignee_arrows).with_origins(&alignee_points),
-                )
-                .unwrap();
-
-            let mut target_points = vec![];
-            let mut target_arrows = vec![];
-            for (target_pt, corr_pt) in &target_point_cloud
-                .iter()
-                .zip(&corresponding_alignee_point_cloud.iter())
-            {
-                target_points.push(pt3_array(target_pt.pos));
-                target_arrows.push(vec3_array(corr_pt.pos - target_pt.pos));
-            }
-
-            if !target_points.is_empty() {
-                next_step();
-
-                crate::RR
-                    .log("corr/point", &rerun::Points3D::new(&target_points))
-                    .unwrap();
                 crate::RR
                     .log(
-                        "corr/arrow",
-                        &rerun::Arrows3D::from_vectors(&target_arrows).with_origins(&target_points),
+                        "corr/alignee-to-target",
+                        &rerun::Arrows3D::from_vectors(&alignee_arrows).with_origins(&alignee_points),
                     )
                     .unwrap();
+
+                let mut target_points = vec![];
+                let mut target_arrows = vec![];
+                for (target_pt, corr_pt) in target_point_cloud
+                    .iter()
+                    .zip(corresponding_alignee_point_cloud.iter())
+                {
+                    target_points.push(pt3_array(target_pt.pos));
+                    target_arrows.push(vec3_array(corr_pt.pos - target_pt.pos));
+                }
+
+                if !target_points.is_empty() {
+                    next_step();
+
+                    crate::RR
+                        .log(
+                            "corr/target-to-alignee",
+                            &rerun::Arrows3D::from_vectors(&target_arrows).with_origins(&target_points),
+                        )
+                        .unwrap();
+                }
             }
         }
 
@@ -155,16 +146,18 @@ where
             let mut included_alignee_points = vec![];
             let mut included_alignee_arrows = vec![];
 
-            for ((alignee_pt, included), (corr_pt, _)) in &alignee_point_cloud
+            for (alignee_pt, corr_pt) in alignee_point_cloud
                 .iter()
-                .zip(&corresponding_target_point_cloud.iter())
+                .zip(corresponding_target_point_cloud.iter())
             {
-                if included {
-                    included_alignee_points.push(pt3_array(*alignee_pt));
-                    included_alignee_arrows.push(vec3_array(*corr_pt - *alignee_pt));
-                } else {
-                    rejected_alignee_points.push(pt3_array(*alignee_pt));
-                    rejected_alignee_arrows.push(vec3_array(*corr_pt - *alignee_pt));
+                included_alignee_points.push(pt3_array(alignee_pt.pos));
+                included_alignee_arrows.push(vec3_array(corr_pt.pos - alignee_pt.pos));
+            }
+
+            for (i, pt) in alignee_points.iter().enumerate() {
+                if !included_alignee_points.contains(&pt) {
+                    rejected_alignee_points.push(pt.clone());
+                    rejected_alignee_arrows.push(alignee_arrows[i].clone());
                 }
             }
 
@@ -173,16 +166,18 @@ where
             let mut included_target_points = vec![];
             let mut included_target_arrows = vec![];
 
-            for ((target_pt, included), (corr_pt, _)) in &target_point_cloud
+            for (target_pt, corr_pt) in target_point_cloud
                 .iter()
-                .zip(&corresponding_alignee_point_cloud.iter())
+                .zip(corresponding_alignee_point_cloud.iter())
             {
-                if included {
-                    included_target_points.push(pt3_array(*target_pt));
-                    included_target_arrows.push(vec3_array(*corr_pt - *target_pt));
-                } else {
-                    rejected_target_points.push(pt3_array(*target_pt));
-                    rejected_target_arrows.push(vec3_array(*corr_pt - *target_pt));
+                included_target_points.push(pt3_array(target_pt.pos));
+                included_target_arrows.push(vec3_array(corr_pt.pos - target_pt.pos));
+            }
+
+            for (i, pt) in target_points.iter().enumerate() {
+                if !included_target_points.contains(&pt) {
+                    rejected_target_points.push(pt.clone());
+                    rejected_target_arrows.push(target_arrows[i].clone());
                 }
             }
 
@@ -192,14 +187,7 @@ where
 
             crate::RR
                 .log(
-                    "masked/included/point",
-                    &rerun::Points3D::new(&included_alignee_points)
-                        .with_colors(included_alignee_points.iter().map(|_| (0, 255, 0))),
-                )
-                .unwrap();
-            crate::RR
-                .log(
-                    "masked/included/arrow",
+                    "corr/alignee-to-target/included",
                     &rerun::Arrows3D::from_vectors(&included_alignee_arrows)
                         .with_origins(&included_alignee_points)
                         .with_colors(included_alignee_points.iter().map(|_| (0, 170, 0))),
@@ -208,14 +196,7 @@ where
 
             crate::RR
                 .log(
-                    "masked/rejected/point",
-                    &rerun::Points3D::new(&rejected_alignee_points)
-                        .with_colors(rejected_alignee_points.iter().map(|_| (255, 0, 0))),
-                )
-                .unwrap();
-            crate::RR
-                .log(
-                    "masked/rejected/arrow",
+                    "corr/alignee-to-target/excluded",
                     &rerun::Arrows3D::from_vectors(&rejected_alignee_arrows)
                         .with_origins(&rejected_alignee_points)
                         .with_colors(rejected_alignee_points.iter().map(|_| (170, 0, 0))),
@@ -227,14 +208,7 @@ where
 
                 crate::RR
                     .log(
-                        "masked/included/point",
-                        &rerun::Points3D::new(&included_target_points)
-                            .with_colors(included_target_points.iter().map(|_| (0, 255, 0))),
-                    )
-                    .unwrap();
-                crate::RR
-                    .log(
-                        "masked/included/arrow",
+                        "corr/target-to-alignee/included",
                         &rerun::Arrows3D::from_vectors(&included_target_arrows)
                             .with_origins(&included_target_points)
                             .with_colors(included_target_points.iter().map(|_| (0, 170, 0))),
@@ -243,14 +217,7 @@ where
 
                 crate::RR
                     .log(
-                        "masked/rejected/point",
-                        &rerun::Points3D::new(&rejected_target_points)
-                            .with_colors(rejected_target_points.iter().map(|_| (255, 0, 0))),
-                    )
-                    .unwrap();
-                crate::RR
-                    .log(
-                        "masked/rejected/arrow",
+                        "corr/target-to-alignee/excluded",
                         &rerun::Arrows3D::from_vectors(&rejected_target_arrows)
                             .with_origins(&rejected_target_points)
                             .with_colors(rejected_target_points.iter().map(|_| (170, 0, 0))),
@@ -271,7 +238,8 @@ where
 
         #[cfg(feature = "rerun")]
         {
-            rr_log_aligned();
+            crate::RR.log("corr", &rerun::Clear::new(true)).unwrap();
+            crate::rr_log_cloud("alignee", &aligned);
         }
 
         transform = &step_transform * transform;
