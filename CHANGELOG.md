@@ -5,7 +5,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.3.0] - 2025-07-02
 
-- Renamed `small_squared_distance_error` to `same_squared_distance_error`
+- Renamed `is_small_squared_distance_error` to `same_squared_distance_error`
 - `estimate_transform` now returns the final alignment error together with the transform
 - Principal Component Analysis now returns the Eigenvalues together with principal axes
 - ICP now accepts a filter to filter out points to be considered for alignment
