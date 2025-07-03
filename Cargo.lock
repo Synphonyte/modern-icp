@@ -3743,7 +3743,7 @@ dependencies = [
  "lazy_static",
  "nalgebra",
  "num-traits",
- "rand 0.8.5",
+ "rand 0.9.1",
  "rerun",
  "serde",
  "statistical",
