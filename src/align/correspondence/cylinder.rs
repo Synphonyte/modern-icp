@@ -1,6 +1,6 @@
 use crate::correspondence::{CorrespondenceEstimator, Correspondences};
 use crate::{MaskedPointCloud, PointCloud, PointCloudPoint};
-use nalgebra::{Point3, RealField, Scalar, point, vector};
+use nalgebra::{point, vector, Point3, RealField, Scalar};
 use num_traits::{Float, One, Zero};
 use std::cell::{Cell, RefCell};
 
@@ -112,7 +112,7 @@ where
             mask[i] = true;
         }
 
-        let mut alignee_cloud = MaskedPointCloud::new(&alignee);
+        let mut alignee_cloud = MaskedPointCloud::new(alignee);
         alignee_cloud.add_mask(&mask);
 
         let target_cloud =

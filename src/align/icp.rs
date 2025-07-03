@@ -1,5 +1,5 @@
 use crate::correspondence::{CorrespondenceEstimator, Correspondences};
-use crate::{MaskedPointCloud, PointCloud, PointCloudPoint, transform_point_cloud};
+use crate::{transform_point_cloud, MaskedPointCloud, PointCloud, PointCloudPoint};
 use cfg_if::cfg_if;
 use nalgebra::*;
 use num_traits::{Float, One, Zero};
@@ -29,6 +29,7 @@ use std::ops::Mul;
 /// `is_converged` is used to check if the algorithm has converged.
 ///
 /// It returns the estimated transform and the distance error computed by `is_converged`.
+#[allow(clippy::too_many_arguments)]
 pub fn estimate_transform<'a, T, M, TG, CE, FP, RO, ET, IC>(
     alignee: &PointCloud<T, 3>,
     target: &'a TG,

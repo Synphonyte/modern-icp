@@ -12,7 +12,7 @@ where
     T: Scalar + RealField + Copy,
 {
     move |_: &Vec<T>, _: &Vec<T>, isometry: &Isometry3<T>, _: &mut T| {
-        isometry.translation.vector.magnitude_squared() < translation_threshold.into()
-            && isometry.rotation.angle() < angle_threshold.into()
+        isometry.translation.vector.magnitude_squared() < translation_threshold
+            && isometry.rotation.angle() < angle_threshold
     }
 }
