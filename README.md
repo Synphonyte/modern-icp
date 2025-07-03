@@ -12,9 +12,16 @@ A modern modular pure Rust implementation of the Iterative Closest Point algorit
 ### Example
 
 ```rust
-use modern_icp::{};
-
-
+let (alignee_transform, error_sum) = estimate_transform(
+    &alignee_cloud,
+    &target_cloud,
+    20, // max iterations
+    BidirectionalDistance::new(&target_cloud),
+    accept_all,
+    reject_3_sigma_dist,
+    point_to_plane_lls::estimate_isometry,
+    same_squared_distance_error(1.0),
+);
 ```
 
 <!-- cargo-rdme end -->

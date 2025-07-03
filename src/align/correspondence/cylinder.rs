@@ -71,11 +71,15 @@ where
         }
     }
 
-    fn find_correspondences<'b>(
+    fn find_correspondences<'b, FP>(
         &self,
         alignee: &'b PointCloud<T, 3>,
         _target: &'b T,
-    ) -> Correspondences<'b, T, 3> {
+        filter_points: &mut FP,
+    ) -> Correspondences<'b, T, 3>
+    where
+        FP: FnMut(&PointCloudPoint<T, 3>) -> bool,
+    {
         let mut point_cloud = self.point_cloud.borrow_mut();
         point_cloud.clear();
 
@@ -84,7 +88,13 @@ where
         let mut count = T::zero();
         let mut sum = T::zero();
 
-        for p in alignee.iter() {
+        let mut mask = vec![false; alignee.len()];
+
+        for (i, p) in alignee
+            .iter()
+            .enumerate()
+            .filter(|(_, p)| filter_points(*p))
+        {
             let cylinder_intersection = self.compute_intersection_with_cylinder(&p.pos);
 
             let (intersection, d) = match cylinder_intersection {
@@ -98,13 +108,23 @@ where
 
             point_cloud.push(intersection);
             distances.push(Float::abs(d));
+
+            mask[i] = true;
         }
+
+        let mut alignee_cloud = MaskedPointCloud::new(&alignee);
+        alignee_cloud.add_mask(&mask);
 
         let target_cloud =
             unsafe { MaskedPointCloud::new(self.point_cloud.as_ptr().as_ref().unwrap()) };
 
         self.radius.set(self.radius.get() + sum / count);
 
-        Correspondences::from_simple_one_way_correspondences(alignee, target_cloud, distances)
+        Correspondences::from_simple_one_way_correspondences(
+            alignee_cloud,
+            alignee,
+            target_cloud,
+            distances,
+        )
     }
 }

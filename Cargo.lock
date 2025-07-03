@@ -3736,13 +3736,14 @@ dependencies = [
 
 [[package]]
 name = "modern-icp"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "cfg-if",
  "kdtree",
  "lazy_static",
  "nalgebra",
  "num-traits",
+ "rand 0.8.5",
  "rerun",
  "serde",
  "statistical",

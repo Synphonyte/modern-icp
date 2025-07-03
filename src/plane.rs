@@ -7,7 +7,7 @@ pub struct Plane<T: Scalar + RealField + Copy, const D: usize> {
     pub constant: T,
 }
 
-impl<T: Scalar + RealField + From<f32> + Copy, const D: usize> Plane<T, D> {
+impl<T: Scalar + RealField + Copy, const D: usize> Plane<T, D> {
     pub fn new(normal: &SVector<T, D>, constant: T) -> Plane<T, D> {
         Plane {
             normal: *normal,

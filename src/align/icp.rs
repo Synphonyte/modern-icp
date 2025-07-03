@@ -1,5 +1,5 @@
 use crate::correspondence::{CorrespondenceEstimator, Correspondences};
-use crate::{MaskedPointCloud, PointCloud, transform_point_cloud};
+use crate::{MaskedPointCloud, PointCloud, PointCloudPoint, transform_point_cloud};
 use cfg_if::cfg_if;
 use nalgebra::*;
 use num_traits::{Float, One, Zero};
@@ -15,6 +15,9 @@ use std::ops::Mul;
 /// `correspondence_estimator` is used to find the correspondences between the alignee and the target.
 /// Please see the [`CorrespondenceEstimator`] documentation for more information.
 ///
+/// The `filter_points` function is used to filter out points that are not considered for correspondence.
+/// It takes a reference to a `PointCloudPoint` and returns a boolean which is `true` if the point should be included.
+///
 /// `reject_outliers` is used to reject outliers from the correspondences. It is simply a function
 /// that takes the point iterators of one point cloud and the corresponding point iterators of the
 /// other point cloud together with the distances between the points. It computes a mask vector
@@ -24,15 +27,18 @@ use std::ops::Mul;
 /// point cloud to match the target.
 ///
 /// `is_converged` is used to check if the algorithm has converged.
-pub fn estimate_transform<'a, T, M, TG, CE, RO, ET, IC>(
+///
+/// It returns the estimated transform and the distance error computed by `is_converged`.
+pub fn estimate_transform<'a, T, M, TG, CE, FP, RO, ET, IC>(
     alignee: &PointCloud<T, 3>,
     target: &'a TG,
     max_iterations: usize,
     correspondence_estimator: CE,
+    mut filter_points: FP,
     mut reject_outliers: RO,
     mut estimate_step_transform: ET,
     mut is_converged: IC,
-) -> M
+) -> (M, T)
 where
     T: Scalar + RealField + Float + One + Zero,
     f32: From<T>,
@@ -41,6 +47,7 @@ where
         + Mul<Vector3<T>, Output = Vector3<T>>
         + Mul<M, Output = M>,
     CE: CorrespondenceEstimator<'a, T, TG, 3>,
+    FP: FnMut(&PointCloudPoint<T, 3>) -> bool,
     RO: FnMut(&mut MaskedPointCloud<T, 3>, &mut MaskedPointCloud<T, 3>, &Vec<T>) -> Vec<bool>,
     ET: FnMut(&mut MaskedPointCloud<T, 3>, &mut MaskedPointCloud<T, 3>, usize) -> M,
     IC: FnMut(&Vec<T>, &Vec<T>, &M, &mut T) -> bool,
@@ -84,7 +91,7 @@ where
             mut corresponding_alignee_point_cloud,
             alignee_to_target_distances,
             target_to_alignee_distances,
-        } = correspondence_estimator.find_correspondences(&aligned, target);
+        } = correspondence_estimator.find_correspondences(&aligned, target, &mut filter_points);
 
         cfg_if! {
             if #[cfg(feature = "rerun")] {
@@ -254,5 +261,5 @@ where
         }
     }
 
-    transform
+    (transform, distance_error)
 }

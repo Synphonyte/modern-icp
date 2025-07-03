@@ -9,7 +9,7 @@ use nalgebra::{
 /// For a detailed explanation of PCA, please see [this article](https://www.baeldung.com/cs/principal-component-analysis).
 pub fn compute_principal_component_analysis<T, const D: usize>(
     points: impl Iterator<Item = Point<T, D>> + Clone,
-) -> Vec<OVector<T, Const<D>>>
+) -> Vec<(OVector<T, Const<D>>, T)>
 where
     T: Scalar + RealField + Copy,
     Const<D>: ToTypenum + DimSub<Const<1>>,
@@ -23,7 +23,7 @@ where
 pub fn compute_principal_component_analysis_with_centroid<T, const D: usize>(
     points: impl Iterator<Item = Point<T, D>>,
     centroid: &OVector<T, Const<D>>,
-) -> Vec<OVector<T, Const<D>>>
+) -> Vec<(OVector<T, Const<D>>, T)>
 where
     T: Scalar + RealField + Copy,
     Const<D>: ToTypenum + DimSub<Const<1>>,
@@ -44,5 +44,8 @@ where
 
     eigen_vv.sort_unstable_by(|(_, v1), (_, v2)| partial_cmp(*v2, *v1).unwrap());
 
-    eigen_vv.into_iter().map(|(vec, _)| vec.into()).collect()
+    eigen_vv
+        .into_iter()
+        .map(|(vec, val)| (vec.into(), *val))
+        .collect()
 }
