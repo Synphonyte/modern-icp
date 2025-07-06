@@ -13,7 +13,7 @@ A modern modular pure Rust implementation of the Iterative Closest Point algorit
 
 ```rust
 let (alignee_transform, error_sum) = estimate_transform(
-    &alignee_cloud,
+    alignee_cloud,
     &target_cloud,
     20, // max iterations
     BidirectionalDistance::new(&target_cloud),
@@ -22,6 +22,27 @@ let (alignee_transform, error_sum) = estimate_transform(
     point_to_plane_lls::estimate_isometry,
     same_squared_distance_error(1.0),
 );
+```
+
+### Integrations
+
+An integrations with the modelz crate is provided so you can use `Model3D` with the `estimate_transform` function.
+
+```rust
+use modelz::Model3D;
+
+if let (Ok(alignee), Ok(target)) = (Model3D::load("alignee.gltf"), Model3D::load("target.stl")) {
+    let (transform, error_sum) = estimate_transform(
+        alignee,
+        &target,
+        20, // max iterations
+        BidirectionalDistance::new(&target),
+        accept_all,
+        reject_3_sigma_dist,
+        point_to_plane_lls::estimate_isometry,
+        same_squared_distance_error(1.0),
+    );
+}
 ```
 
 <!-- cargo-rdme end -->

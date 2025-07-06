@@ -71,14 +71,15 @@ where
         }
     }
 
-    fn find_correspondences<'b, FP>(
-        &self,
+    fn find_correspondences<'b, 't, FP>(
+        &'t self,
         alignee: &'b PointCloud<T, 3>,
         _target: &'b T,
         filter_points: &mut FP,
-    ) -> Correspondences<'b, T, 3>
+    ) -> Correspondences<'b, 't, T, 3>
     where
         FP: FnMut(&PointCloudPoint<T, 3>) -> bool,
+        'b: 't,
     {
         let mut point_cloud = self.point_cloud.borrow_mut();
         point_cloud.clear();

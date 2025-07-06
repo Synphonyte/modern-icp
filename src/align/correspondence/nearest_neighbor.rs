@@ -1,42 +1,48 @@
 use crate::correspondence::{
     CorrespondenceEstimator, Correspondences, get_ordered_correspondences_and_distances_nn,
 };
-use crate::{PointCloud, PointCloudPoint, kd_tree_of_point_cloud};
+use crate::{PointCloud, PointCloudPoint, ToPointCloud, kd_tree_of_point_cloud};
 use kdtree::KdTree;
 use nalgebra::{RealField, Scalar};
 use num_traits::{Float, One, Zero};
 
-pub struct NearestNeighbor<'a, T>
+pub struct NearestNeighbor<T>
 where
     T: Scalar + RealField + Float + One + Zero,
 {
-    tree: KdTree<T, usize, &'a [T]>,
+    tree: KdTree<T, usize, Vec<T>>,
+    target_cloud: PointCloud<T, 3>,
 }
 
-impl<'a, T> CorrespondenceEstimator<'a, T, PointCloud<T, 3>, 3> for NearestNeighbor<'a, T>
+impl<'a, T, PC> CorrespondenceEstimator<'a, T, PC, 3> for NearestNeighbor<T>
 where
     T: Scalar + RealField + Float + One + Zero,
+    PC: ToPointCloud<T, 3>,
 {
-    fn new(target: &'a PointCloud<T, 3>) -> Self {
+    fn new(target: &'a PC) -> Self {
+        let target_cloud = target.to_point_cloud();
+
         NearestNeighbor {
-            tree: kd_tree_of_point_cloud(target),
+            tree: kd_tree_of_point_cloud(&target_cloud),
+            target_cloud,
         }
     }
 
-    fn find_correspondences<'b, FP>(
-        &self,
+    fn find_correspondences<'b, 't, FP>(
+        &'t self,
         alignee: &'b PointCloud<T, 3>,
-        target: &'b PointCloud<T, 3>,
+        _target: &'b PC,
         filter_points: &mut FP,
-    ) -> Correspondences<'b, T, 3>
+    ) -> Correspondences<'b, 't, T, 3>
     where
         FP: FnMut(&PointCloudPoint<T, 3>) -> bool,
+        'b: 't,
     {
         let (alignee_point_cloud, corresponding_points_iter, distances) =
             get_ordered_correspondences_and_distances_nn(
                 &self.tree,
                 alignee,
-                target,
+                &self.target_cloud,
                 filter_points,
             );
 

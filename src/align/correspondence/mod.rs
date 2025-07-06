@@ -13,7 +13,7 @@ use num_traits::{Float, One, Zero};
 use std::fmt::Debug;
 
 /// Contains all the correspondences found by the correspondence estimator.
-pub struct Correspondences<'a, T, const D: usize>
+pub struct Correspondences<'a, 't, T, const D: usize>
 where
     T: Copy + PartialEq + Debug + 'static,
 {
@@ -22,12 +22,12 @@ where
     pub alignee_point_cloud: MaskedPointCloud<'a, T, D>,
 
     /// Every point in this iterator corresponds to the point in the `alignee_point_cloud` with the same index.
-    pub corresponding_target_point_cloud: MaskedPointCloud<'a, T, D>,
+    pub corresponding_target_point_cloud: MaskedPointCloud<'t, T, D>,
 
     /// Iterator over the points of the target that have a corresponcence point in the alignee.
     /// (found in the `corresponding_alignee_point_cloud`).
     /// This is only used by bidrectional distance correspondence estimators.
-    pub target_point_cloud: MaskedPointCloud<'a, T, D>,
+    pub target_point_cloud: MaskedPointCloud<'t, T, D>,
 
     /// Every point in this iterator corresponds to the point in the `target_point_cloud` with the same index.
     /// This is only used by bidrectional distance correspondence estimators.
@@ -43,15 +43,16 @@ where
     pub target_to_alignee_distances: Vec<T>,
 }
 
-impl<'a, T, const D: usize> Correspondences<'a, T, D>
+impl<'a, 't, T, const D: usize> Correspondences<'a, 't, T, D>
 where
     T: Copy + PartialEq + Debug + 'static,
+    'a: 't,
 {
     /// Use this for simple one-way correspondence estimators.
     pub fn from_simple_one_way_correspondences(
         alignee_point_cloud: MaskedPointCloud<'a, T, D>,
         alignee: &'a PointCloud<T, D>,
-        corresponding_target_point_cloud: MaskedPointCloud<'a, T, D>,
+        corresponding_target_point_cloud: MaskedPointCloud<'t, T, D>,
         alignee_to_target_distances: Vec<T>,
     ) -> Self {
         let mut empty_alignee_cloud = MaskedPointCloud::new(alignee);
@@ -90,14 +91,15 @@ where
     /// It takes a reference to a `PointCloudPoint` and returns a boolean which is `true` if the point should be included.
     ///
     /// See the [`Correspondences`] return type documentation for more information.
-    fn find_correspondences<'b, FP>(
-        &self,
+    fn find_correspondences<'b, 't, FP>(
+        &'t self,
         alignee: &'b PointCloud<T, D>,
         target: &'b TG,
         filter_points: &mut FP,
-    ) -> Correspondences<'b, T, D>
+    ) -> Correspondences<'b, 't, T, D>
     where
-        FP: FnMut(&PointCloudPoint<T, 3>) -> bool;
+        FP: FnMut(&PointCloudPoint<T, 3>) -> bool,
+        'b: 't;
 }
 
 /// For every point in `data_set_x` finds the nearest point in `data_set_y` using the KD-Tree `tree`.
@@ -105,14 +107,14 @@ where
 /// and another masked point_cloud referencing `data_set_y` that correspond to the points in the first
 /// returned masked point_cloud.
 /// Finally it returns a list of the distances between the points of the two returned point_clouds.
-pub fn get_ordered_correspondences_and_distances_nn<'a, T, FP>(
-    tree: &KdTree<T, usize, &[T]>,
+pub fn get_ordered_correspondences_and_distances_nn<'a, 't, T, FP>(
+    tree: &KdTree<T, usize, Vec<T>>,
     data_set_x: &'a PointCloud<T, 3>,
-    data_set_y: &'a PointCloud<T, 3>,
+    data_set_y: &'t PointCloud<T, 3>,
     filter_points: &mut FP,
 ) -> (
     MaskedPointCloud<'a, T, 3>,
-    MaskedPointCloud<'a, T, 3>,
+    MaskedPointCloud<'t, T, 3>,
     Vec<T>,
 )
 where

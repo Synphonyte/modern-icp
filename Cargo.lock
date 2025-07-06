@@ -2247,6 +2247,9 @@ name = "float-cmp"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "98de4bbd547a563b716d8dfa9aad1cb19bfab00f4fa09a6a4ed21dbcf44ce9c4"
+dependencies = [
+ "num-traits",
+]
 
 [[package]]
 name = "fnv"
@@ -3735,12 +3738,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "modelz"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e9dcfc96552f2b7b02247a7eb95e5897a8dae59fe005dd5a40ae315fa12da908"
+dependencies = [
+ "gltf",
+ "log",
+ "ply-rs",
+ "stl_io",
+ "tobj",
+]
+
+[[package]]
 name = "modern-icp"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "cfg-if",
  "kdtree",
  "lazy_static",
+ "modelz",
  "nalgebra",
  "num-traits",
  "rand 0.8.5",
@@ -7687,6 +7704,16 @@ checksum = "49d57902bb128e5e38b5218d3681215ae3e322d99f65d5420e9849730d2ea372"
 dependencies = [
  "num 0.2.1",
  "rand 0.6.5",
+]
+
+[[package]]
+name = "stl_io"
+version = "0.8.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cff2e145168af9fef3b518ac0c6f9849c407b3df8a28582ced9f1fda510aa34c"
+dependencies = [
+ "byteorder",
+ "float-cmp",
 ]
 
 [[package]]

@@ -1,5 +1,5 @@
 use crate::correspondence::{CorrespondenceEstimator, Correspondences};
-use crate::{MaskedPointCloud, PointCloud, PointCloudPoint, transform_point_cloud};
+use crate::{MaskedPointCloud, PointCloudPoint, ToPointCloud, transform_point_cloud};
 use cfg_if::cfg_if;
 use nalgebra::*;
 use num_traits::{Float, One, Zero};
@@ -31,7 +31,7 @@ use std::ops::Mul;
 /// It returns the estimated transform and the distance error computed by `is_converged`.
 #[allow(clippy::too_many_arguments)]
 pub fn estimate_transform<'a, T, M, TG, CE, FP, RO, ET, IC>(
-    alignee: &PointCloud<T, 3>,
+    alignee: impl ToPointCloud<T, 3>,
     target: &'a TG,
     max_iterations: usize,
     correspondence_estimator: CE,
@@ -55,8 +55,7 @@ where
 {
     let mut transform = M::one();
 
-    let mut aligned = PointCloud::new();
-    aligned.clone_from(alignee);
+    let mut aligned = alignee.to_point_cloud();
 
     cfg_if! {
         if #[cfg(feature = "rerun")]{

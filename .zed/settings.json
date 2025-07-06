@@ -10,7 +10,7 @@
           "allTargets": true
         },
         "cargo": {
-          "features": ["rerun"],
+          "features": ["rerun", "modelz"],
           "target": "wasm32-unknown-unknown"
         }
       }
