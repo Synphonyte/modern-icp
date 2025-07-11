@@ -1,4 +1,4 @@
-use crate::{MaskedPointCloud, PointCloudPoint, compute_centroid};
+use crate::{compute_centroid, MaskedPointCloud, PointCloudPoint};
 use nalgebra::*;
 
 /// Estimates the affine transformation between the alignee and the target.

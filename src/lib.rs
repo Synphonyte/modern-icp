@@ -8,7 +8,7 @@
 //! # use modern_icp::correspondence::BidirectionalDistance;
 //! # use modern_icp::transform_estimation::point_to_plane_lls;
 //! # use modern_icp::convergence::same_squared_distance_error;
-//! # use modern_icp::reject_outliers::reject_3_sigma_dist;
+//! # use modern_icp::reject_outliers::reject_n_sigma_dist;
 //! # use modern_icp::filter_points::accept_all;
 //! # use crate::modern_icp::correspondence::CorrespondenceEstimator;
 //! # use nalgebra::{Point3, Vector3};
@@ -30,7 +30,7 @@
 //! #         rand::random::<f32>() * 2.0 - 1.0,
 //! #         rand::random::<f32>() * 2.0 - 1.0,
 //! #     ).normalize();
-//! #     alignee_cloud.push(PointCloudPoint { pos, norm: Some(norm) });
+//! #     alignee_cloud.push(PointCloudPoint::from_pos_norm(pos, norm));
 //! # }
 //! #
 //! # // Generate 100 random points for target cloud
@@ -45,7 +45,7 @@
 //! #         rand::random::<f32>() * 2.0 - 1.0,
 //! #         rand::random::<f32>() * 2.0 - 1.0,
 //! #     ).normalize();
-//! #     target_cloud.push(PointCloudPoint { pos, norm: Some(norm) });
+//! #     target_cloud.push(PointCloudPoint::from_pos_norm(pos, norm));
 //! # }
 //! #
 //! let (alignee_transform, error_sum) = estimate_transform(
@@ -54,7 +54,7 @@
 //!     20, // max iterations
 //!     BidirectionalDistance::new(&target_cloud),
 //!     accept_all,
-//!     reject_3_sigma_dist,
+//!     reject_n_sigma_dist(3.0),
 //!     point_to_plane_lls::estimate_isometry,
 //!     same_squared_distance_error(1.0),
 //! );
@@ -70,7 +70,7 @@
 //! # use modern_icp::correspondence::BidirectionalDistance;
 //! # use modern_icp::transform_estimation::point_to_plane_lls;
 //! # use modern_icp::convergence::same_squared_distance_error;
-//! # use modern_icp::reject_outliers::reject_3_sigma_dist;
+//! # use modern_icp::reject_outliers::reject_n_sigma_dist;
 //! # use modern_icp::filter_points::accept_all;
 //! # use crate::modern_icp::correspondence::CorrespondenceEstimator;
 //! use modelz::Model3D;
@@ -82,7 +82,7 @@
 //!         20, // max iterations
 //!         BidirectionalDistance::new(&target),
 //!         accept_all,
-//!         reject_3_sigma_dist,
+//!         reject_n_sigma_dist(3.0),
 //!         point_to_plane_lls::estimate_isometry,
 //!         same_squared_distance_error(1.0),
 //!     );
@@ -107,29 +107,39 @@ lazy_static::lazy_static! {
 }
 
 #[cfg(feature = "rerun")]
-fn pt3_array<T>(pt: nalgebra::Point3<T>) -> [f32; 3]
+fn pt3_array<T, const D: usize>(pt: nalgebra::Point<T, D>) -> [f32; 3]
 where
     T: Clone + PartialEq + nalgebra::Scalar,
     f32: From<T>,
 {
     [
-        pt.x.clone().into(),
-        pt.y.clone().into(),
-        pt.z.clone().into(),
+        pt[0].clone().into(),
+        pt[1].clone().into(),
+        pt[2].clone().into(),
     ]
 }
 
 #[cfg(feature = "rerun")]
-fn vec3_array<T>(vec: nalgebra::Vector3<T>) -> [f32; 3]
+fn vec3_array<T, const D: usize>(vec: nalgebra::OVector<T, nalgebra::Const<D>>) -> [f32; 3]
 where
     T: Clone + PartialEq + nalgebra::Scalar,
     f32: From<T>,
 {
     [
-        vec.x.clone().into(),
-        vec.y.clone().into(),
-        vec.z.clone().into(),
+        vec[0].clone().into(),
+        vec[1].clone().into(),
+        vec[2].clone().into(),
     ]
+}
+
+#[cfg(feature = "rerun")]
+pub fn unit_quat_array<T>(quat: nalgebra::UnitQuaternion<T>) -> [f32; 4]
+where
+    T: Copy + PartialEq + nalgebra::SimdValue + nalgebra::Scalar + nalgebra::RealField,
+    f32: From<T>,
+{
+    let quat = quat.quaternion();
+    [quat.i.into(), quat.j.into(), quat.k.into(), quat.w.into()]
 }
 
 #[cfg(feature = "rerun")]

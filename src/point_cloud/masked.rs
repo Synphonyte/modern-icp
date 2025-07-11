@@ -127,3 +127,37 @@ impl<'a, T: Scalar + Copy, const D: usize> From<&'a PointCloud<T, D>>
         }
     }
 }
+
+#[cfg(feature = "rerun")]
+impl<'a, T, const D: usize> MaskedPointCloud<'a, T, D>
+where
+    T: Scalar + Copy,
+    f32: From<T>,
+{
+    pub fn log_rerun(&self, name: &str) {
+        let mut included_points = vec![];
+        let mut excluded_points = vec![];
+
+        for (i, p) in self.point_cloud.iter().enumerate() {
+            let arr = crate::pt3_array(p.pos);
+            if self.masked_and_ordered_to_plain_index.contains(&i) {
+                included_points.push(arr);
+            } else {
+                excluded_points.push(arr);
+            }
+        }
+
+        crate::RR
+            .log(
+                format!("{name}/included"),
+                &rerun::Points3D::new(included_points),
+            )
+            .unwrap();
+        crate::RR
+            .log(
+                format!("{name}/excluded"),
+                &rerun::Points3D::new(excluded_points),
+            )
+            .unwrap();
+    }
+}

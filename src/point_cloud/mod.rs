@@ -13,14 +13,15 @@ pub use traits::*;
 
 pub type PointCloud<T, const D: usize> = Vec<PointCloudPoint<T, D>>;
 
-pub fn point_cloud_from_position_slice<T: Scalar + Copy>(slice: &[T]) -> PointCloud<T, 3> {
+pub fn point_cloud_from_position_slice<T: Scalar + Copy + One>(slice: &[T]) -> PointCloud<T, 3> {
     let mut cloud = PointCloud::with_capacity(slice.len() / 3);
 
     for i in (0..slice.len()).step_by(3) {
-        cloud.push(PointCloudPoint {
-            pos: Point3::new(slice[i], slice[i + 1], slice[i + 2]),
-            norm: None,
-        })
+        cloud.push(PointCloudPoint::from_pos(Point3::new(
+            slice[i],
+            slice[i + 1],
+            slice[i + 2],
+        )))
     }
 
     cloud

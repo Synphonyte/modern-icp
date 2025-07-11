@@ -1,6 +1,6 @@
 use crate::correspondence::{CorrespondenceEstimator, Correspondences};
 use crate::{MaskedPointCloud, PointCloud, PointCloudPoint};
-use nalgebra::{Point3, RealField, Scalar, point, vector};
+use nalgebra::{point, vector, Point3, RealField, Scalar};
 use num_traits::{Float, One, Zero};
 use std::cell::{Cell, RefCell};
 
@@ -38,22 +38,18 @@ where
             let normalized_pos_2d = pos_2d / len;
             let scaled_pos_2d = normalized_pos_2d * radius;
             CylinderIntersection::Mantle((
-                PointCloudPoint {
-                    pos: point![scaled_pos_2d[0], scaled_pos_2d[1], pos.z],
-                    norm: Some(vector![
-                        normalized_pos_2d[0],
-                        normalized_pos_2d[1],
-                        T::zero()
-                    ]),
-                },
+                PointCloudPoint::from_pos_norm(
+                    point![scaled_pos_2d[0], scaled_pos_2d[1], pos.z],
+                    vector![normalized_pos_2d[0], normalized_pos_2d[1], T::one()],
+                ),
                 mantle_distance,
             ))
         } else {
             CylinderIntersection::Top((
-                PointCloudPoint {
-                    pos: point![pos.x, pos.y, T::zero()],
-                    norm: Some(vector![T::zero(), T::zero(), T::one()]),
-                },
+                PointCloudPoint::from_pos_norm(
+                    point![pos.x, pos.y, T::zero()],
+                    vector![T::zero(), T::zero(), T::one()],
+                ),
                 pos.z,
             ))
         }

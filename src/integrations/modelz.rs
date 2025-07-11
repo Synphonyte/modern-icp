@@ -13,6 +13,7 @@ impl ToPointCloud<f32, 3> for Model3D {
                 point_cloud.push(PointCloudPoint {
                     pos: Point3::new(vertex.position[0], vertex.position[1], vertex.position[2]),
                     norm: vertex.normal.map(|n| Vector3::new(n[0], n[1], n[2])),
+                    weight: 1.0,
                 });
             }
         }

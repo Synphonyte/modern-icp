@@ -1,4 +1,5 @@
 use nalgebra::{Point, Scalar};
+use num_traits::One;
 
 use super::PointCloud;
 
@@ -20,7 +21,7 @@ where
 
 impl<T, const D: usize> ToPointCloud<T, D> for Vec<Point<T, D>>
 where
-    T: Scalar + Copy,
+    T: Scalar + Copy + One,
 {
     fn to_point_cloud(&self) -> PointCloud<T, D> {
         self.iter().map(|point| (*point).into()).collect()
