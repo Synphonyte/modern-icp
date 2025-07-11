@@ -12,8 +12,7 @@ pub fn estimate_affine<T>(
 where
     T: Scalar + RealField + From<f32> + Copy,
 {
-    let subtract_mean =
-        |mean_value: Point3<T>| move |p: &PointCloudPoint<T, 3>| (p.pos - mean_value);
+    let subtract_mean = |mean_value: Point3<T>| move |p: &PointCloudPoint<T, 3>| p.pos - mean_value;
 
     let mean_value_alignee = Point3::from(compute_centroid(alignee.points_iter()));
     let demeaned_alignee: Vec<Vector3<T>> = alignee
