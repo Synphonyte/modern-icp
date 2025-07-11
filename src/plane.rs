@@ -2,7 +2,7 @@ use nalgebra::*;
 use num_traits::{Float, Zero};
 use statistical::standard_deviation;
 
-use crate::{compute_centroid, demean_into_matrix, MaskedPointCloud};
+use crate::{MaskedPointCloud, compute_centroid, demean_into_matrix};
 
 /// Plane that is described by the equation `normal.dot(point_on_plane.coords) - constant == 0`
 pub struct Plane<T: Scalar + RealField + Copy, const D: usize> {
