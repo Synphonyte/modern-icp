@@ -18,7 +18,7 @@ let (alignee_transform, error_sum) = estimate_transform(
     20, // max iterations
     BidirectionalDistance::new(&target_cloud),
     accept_all,
-    reject_3_sigma_dist,
+    reject_n_sigma_dist(3.0),
     point_to_plane_lls::estimate_isometry,
     same_squared_distance_error(1.0),
 );
@@ -38,7 +38,7 @@ if let (Ok(alignee), Ok(target)) = (Model3D::load("alignee.gltf"), Model3D::load
         20, // max iterations
         BidirectionalDistance::new(&target),
         accept_all,
-        reject_3_sigma_dist,
+        reject_n_sigma_dist(3.0),
         point_to_plane_lls::estimate_isometry,
         same_squared_distance_error(1.0),
     );
