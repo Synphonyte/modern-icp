@@ -41,6 +41,18 @@ impl<T: Scalar + RealField + Copy, const D: usize> Plane<T, D> {
         self.constant = self.normal.dot(&pivot.coords);
     }
 
+    /// Computes the standard deviation of the distances from the plane to the given points.
+    pub fn points_dist_std_dev(&self, points: impl Iterator<Item = Point<T, D>>) -> T
+    where
+        T: Float,
+    {
+        let distances: Vec<T> = points
+            .map(|p| Float::abs(self.distance_to_point(&p)))
+            .collect();
+
+        standard_deviation(distances.as_slice(), None)
+    }
+
     /// Fit the plane to the given points using SVD.
     pub fn fit_to_points(points: impl Iterator<Item = Point<T, D>> + Clone) -> Self {
         let alignee_centroid = compute_centroid(points.clone());
@@ -68,6 +80,8 @@ impl<T: Scalar + RealField + Copy, const D: usize> Plane<T, D> {
     /// - `masked_point_cloud`: The masked point to fit the plane to.
     /// - `n_sigma`: The threshold for the standard deviation of the distances from the plane.
     /// - `max_iterations`: The maximum number of iterations of matching the plane to the cloud to perform.
+    /// - `std_dev_threshold`: When the standard deviation of the distances from the plane is less than this value,
+    ///   the plane is considered to be a good fit and the fitting algorithm terminates.
     ///
     /// ## Returns
     ///
@@ -77,6 +91,7 @@ impl<T: Scalar + RealField + Copy, const D: usize> Plane<T, D> {
         point_cloud: &mut MaskedPointCloud<'a, T, D>,
         n_sigma: T,
         max_iterations: usize,
+        std_dev_threshold: T,
     ) -> (Self, Vec<bool>)
     where
         T: Zero + Float,
@@ -101,31 +116,28 @@ impl<T: Scalar + RealField + Copy, const D: usize> Plane<T, D> {
                 .map(|p| Float::abs(plane.distance_to_point(&p.pos)))
                 .collect();
 
-            if standard_deviation(distances.as_slice(), None) < n_sigma {
+            let standard_deviation = standard_deviation(distances.as_slice(), None);
+
+            if standard_deviation < std_dev_threshold {
                 break;
             }
 
-            let mut max_dist = T::zero();
-            let mut max_idx = 0;
+            let mut local_mask = vec![true; point_cloud.len()];
 
             for (i, d) in distances.into_iter().enumerate() {
-                if d > max_dist {
-                    max_dist = d;
-                    max_idx = i;
-                }
-            }
+                if d > standard_deviation * n_sigma {
+                    local_mask[i] = false;
 
-            let mut local_mask = vec![true; point_cloud.len()];
-            local_mask[max_idx] = false;
-
-            let mut i = 0;
-            for m in mask.iter_mut() {
-                if *m {
-                    if i == max_idx {
-                        *m = false;
-                        break;
+                    let mut j = 0;
+                    for m in mask.iter_mut() {
+                        if *m {
+                            if j == i {
+                                *m = false;
+                                break;
+                            }
+                            j += 1;
+                        }
                     }
-                    i += 1;
                 }
             }
 
@@ -160,6 +172,14 @@ where
                         &Vector3::y(),
                     )),
                 )]),
+            )
+            .unwrap();
+
+        crate::RR
+            .log(
+                format!("{name}/normal"),
+                &rerun::Arrows3D::from_vectors([crate::vec3_array(self.normal)])
+                    .with_origins([crate::pt3_array(pivot)]),
             )
             .unwrap();
     }
