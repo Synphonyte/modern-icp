@@ -5,6 +5,7 @@ use statistical::standard_deviation;
 use crate::{MaskedPointCloud, compute_centroid, demean_into_matrix};
 
 /// Plane that is described by the equation `normal.dot(point_on_plane.coords) - constant == 0`
+#[derive(Clone, Copy)]
 pub struct Plane<T: Scalar + RealField + Copy, const D: usize> {
     pub normal: SVector<T, D>,
     pub constant: T,
