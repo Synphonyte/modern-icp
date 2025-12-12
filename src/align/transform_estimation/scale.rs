@@ -7,10 +7,14 @@ use nalgebra::*;
 pub fn estimate_scale_vector<T, const D: usize>(
     alignee: &mut MaskedPointCloud<T, D>,
     target: &mut MaskedPointCloud<T, D>,
-) -> SVector<T, D>
+) -> Option<SVector<T, D>>
 where
     T: Scalar + RealField + Copy,
 {
+    if alignee.is_empty() || target.is_empty() {
+        return None;
+    }
+
     let numerator = alignee
         .iter()
         .zip(target.iter())
@@ -22,17 +26,17 @@ where
         r + a.pos.coords.component_mul(&a.pos.coords)
     });
 
-    numerator.component_div(&denominator)
+    Some(numerator.component_div(&denominator))
 }
 
+#[inline]
 pub fn estimate_scale<T, const D: usize>(
     alignee: &mut MaskedPointCloud<T, D>,
     target: &mut MaskedPointCloud<T, D>,
     _: usize,
-) -> SMatrix<T, D, D>
+) -> Option<SMatrix<T, D, D>>
 where
     T: Scalar + RealField + Copy,
 {
-    let vec = estimate_scale_vector(alignee, target);
-    SMatrix::from_diagonal(&vec)
+    estimate_scale_vector(alignee, target).map(|vec| SMatrix::from_diagonal(&vec))
 }

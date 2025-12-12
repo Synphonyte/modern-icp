@@ -1,6 +1,6 @@
 [package]
 name = "modern-icp"
-version = "0.7.1"
+version = "0.8.0"
 edition = "2024"
 description = "A modern modular pure Rust implementation of the Iterative Closest Point algorithm."
 readme = "README.md"

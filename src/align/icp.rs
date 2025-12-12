@@ -4,6 +4,7 @@ use cfg_if::cfg_if;
 use nalgebra::*;
 use num_traits::{Float, One, Zero};
 use std::ops::Mul;
+use tracing::info;
 
 /// Estimates the transform that the alignee point cloud has to be transformed by to match the
 /// target using the iterative closest point algorithm.
@@ -50,7 +51,7 @@ where
     CE: CorrespondenceEstimator<'a, T, TG, 3>,
     FP: FnMut(&PointCloudPoint<T, 3>) -> bool,
     RO: FnMut(&mut MaskedPointCloud<T, 3>, &mut MaskedPointCloud<T, 3>, &Vec<T>) -> Vec<bool>,
-    ET: FnMut(&mut MaskedPointCloud<T, 3>, &mut MaskedPointCloud<T, 3>, usize) -> M,
+    ET: FnMut(&mut MaskedPointCloud<T, 3>, &mut MaskedPointCloud<T, 3>, usize) -> Option<M>,
     IC: FnMut(&Vec<T>, &Vec<T>, &M, &mut T) -> bool,
 {
     let mut transform = M::one();
@@ -162,9 +163,9 @@ where
             }
 
             for (i, pt) in alignee_points.iter().enumerate() {
-                if !included_alignee_points.contains(&pt) {
-                    rejected_alignee_points.push(pt.clone());
-                    rejected_alignee_arrows.push(alignee_arrows[i].clone());
+                if !included_alignee_points.contains(pt) {
+                    rejected_alignee_points.push(*pt);
+                    rejected_alignee_arrows.push(alignee_arrows[i]);
                 }
             }
 
@@ -182,9 +183,9 @@ where
             }
 
             for (i, pt) in target_points.iter().enumerate() {
-                if !included_target_points.contains(&pt) {
-                    rejected_target_points.push(pt.clone());
-                    rejected_target_arrows.push(target_arrows[i].clone());
+                if !included_target_points.contains(pt) {
+                    rejected_target_points.push(*pt);
+                    rejected_target_arrows.push(target_arrows[i]);
                 }
             }
 
@@ -239,7 +240,13 @@ where
         let masked_target = &mut corresponding_target_point_cloud;
         masked_target.extend(&target_point_cloud);
 
-        let step_transform = estimate_step_transform(masked_alignee, masked_target, i);
+        let step_transform = match estimate_step_transform(masked_alignee, masked_target, i) {
+            Some(step_transform) => step_transform,
+            None => {
+                info!("Step transform estimation failed. Terminating.");
+                break;
+            }
+        };
 
         transform_point_cloud(&mut aligned, &step_transform);
 

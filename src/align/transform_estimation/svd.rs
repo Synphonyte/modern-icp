@@ -8,7 +8,7 @@ pub fn estimate_isometry<T>(
     alignee: &mut MaskedPointCloud<T, 3>,
     target: &mut MaskedPointCloud<T, 3>,
     _: usize,
-) -> IsometryMatrix3<T>
+) -> Option<IsometryMatrix3<T>>
 where
     T: Scalar + RealField + Copy,
 {
@@ -26,8 +26,8 @@ where
         singular_values: _,
     } = covariant_matrix.svd(true, true);
 
-    let u = u.unwrap();
-    let mut v = v_t.unwrap().transpose();
+    let u = u?;
+    let mut v = v_t?.transpose();
 
     if u.determinant() * v.determinant() < T::zero() {
         let mut column = v.column_mut(2);
@@ -39,13 +39,13 @@ where
 
     let translation = Translation3::from(target_centroid - rotation_matrix * alignee_centroid);
 
-    IsometryMatrix3::from_parts(translation, rotation)
+    Some(IsometryMatrix3::from_parts(translation, rotation))
 }
 
 pub fn estimate_similarity<T>(
     source: &mut MaskedPointCloud<T, 3>,
     target: &mut MaskedPointCloud<T, 3>,
-) -> SimilarityMatrix3<T>
+) -> Option<SimilarityMatrix3<T>>
 where
     T: Scalar + RealField + Copy,
     // &'a T: Mul<&'a T, Output=&'a T>,
@@ -64,8 +64,8 @@ where
         singular_values: _,
     } = covariant_matrix.svd(true, true);
 
-    let u = u.unwrap();
-    let mut v = v_t.unwrap().transpose();
+    let u = u?;
+    let mut v = v_t?.transpose();
 
     if u.determinant() * v.determinant() < T::zero() {
         let mut column = v.column_mut(2);
@@ -95,5 +95,5 @@ where
     let translation =
         Translation3::from(target_centroid - rotation_matrix * source_centroid * scale);
 
-    SimilarityMatrix3::from_parts(translation, rotation, scale)
+    Some(SimilarityMatrix3::from_parts(translation, rotation, scale))
 }

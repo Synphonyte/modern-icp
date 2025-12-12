@@ -19,16 +19,16 @@ use std::ops::Mul;
 ///
 /// build_modified_transform_estimator(
 ///     estimate_translation,
-///     |t| IsometryMatrix3::from_parts(
+///     |t| Some(IsometryMatrix3::from_parts(
 ///         Translation3::new(0.0, t.translation.y, 0.0),
 ///         t.rotation,
-///     ),
+///     )),
 /// );
 /// ```
 pub fn build_modified_transform_estimator<T, M, ET, MT>(
     mut estimate_transform: ET,
     mut modify_transform: MT,
-) -> impl FnMut(&mut MaskedPointCloud<T, 3>, &mut MaskedPointCloud<T, 3>, usize) -> M
+) -> impl FnMut(&mut MaskedPointCloud<T, 3>, &mut MaskedPointCloud<T, 3>, usize) -> Option<M>
 where
     T: Scalar + RealField + Float + One + Zero,
     f32: From<T>,
@@ -36,11 +36,12 @@ where
     for<'b> &'b M: Mul<Point3<T>, Output = Point3<T>>
         + Mul<Vector3<T>, Output = Vector3<T>>
         + Mul<M, Output = M>,
-    ET: FnMut(&mut MaskedPointCloud<T, 3>, &mut MaskedPointCloud<T, 3>, usize) -> M + 'static,
-    MT: FnMut(M) -> M + 'static,
+    ET: FnMut(&mut MaskedPointCloud<T, 3>, &mut MaskedPointCloud<T, 3>, usize) -> Option<M>
+        + 'static,
+    MT: FnMut(M) -> Option<M> + 'static,
 {
     move |x: &mut MaskedPointCloud<T, 3>, y: &mut MaskedPointCloud<T, 3>, i: usize| {
-        let transform = estimate_transform(x, y, i);
+        let transform = estimate_transform(x, y, i)?;
         modify_transform(transform)
     }
 }
@@ -50,9 +51,12 @@ where
 /// This allos to use multiple transform estimators in a row.
 /// The first estimator is used for the first iteration, the second estimator for the second iteration and so on.
 pub fn build_interlaced_transform_estimator<T, M, const S: usize>(
-    transform_estimators: &'static mut [impl FnMut(&mut MaskedPointCloud<T, 3>, &mut MaskedPointCloud<T, 3>, usize) -> M;
-                     S],
-) -> impl FnMut(&mut MaskedPointCloud<T, 3>, &mut MaskedPointCloud<T, 3>, usize) -> M
+    transform_estimators: &'static mut [impl FnMut(
+        &mut MaskedPointCloud<T, 3>,
+        &mut MaskedPointCloud<T, 3>,
+        usize,
+    ) -> Option<M>; S],
+) -> impl FnMut(&mut MaskedPointCloud<T, 3>, &mut MaskedPointCloud<T, 3>, usize) -> Option<M>
 where
     T: Scalar + RealField + Float + One + Zero,
     f32: From<T>,

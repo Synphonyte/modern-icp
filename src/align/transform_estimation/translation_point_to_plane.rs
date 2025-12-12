@@ -6,10 +6,14 @@ pub fn estimate_translation<T, const D: usize>(
     alignee: &mut MaskedPointCloud<T, D>,
     target: &mut MaskedPointCloud<T, D>,
     _: usize,
-) -> Isometry<T, Rotation<T, D>, D>
+) -> Option<Isometry<T, Rotation<T, D>, D>>
 where
     T: Scalar + RealField + Copy + From<f32>,
 {
+    if alignee.is_empty() || target.is_empty() {
+        return None;
+    }
+
     let translation_vec = alignee
         .iter()
         .zip(target.iter().map(|t| {
@@ -22,5 +26,8 @@ where
         .sum::<SVector<T, D>>()
         / -T::from(alignee.len() as f32);
 
-    Isometry::from_parts(Translation::from(translation_vec), Rotation::identity())
+    Some(Isometry::from_parts(
+        Translation::from(translation_vec),
+        Rotation::identity(),
+    ))
 }

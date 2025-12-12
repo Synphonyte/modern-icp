@@ -1,5 +1,4 @@
 use nalgebra::*;
-use tracing::{instrument, warn};
 
 use crate::{MaskedPointCloud, Plane};
 
@@ -8,12 +7,11 @@ use crate::{MaskedPointCloud, Plane};
 /// See this [implementation of the algorithm from PointCloudLibrary](https://github.com/PointCloudLibrary/pcl/blob/d242fcbdbb53efc7de48c9159343432a2194a27c/registration/include/pcl/registration/impl/transformation_estimation_point_to_plane_lls.hpp#L165)
 /// See also this [paper from Low](https://www.comp.nus.edu.sg/~lowkl/publications/lowk_point-to-plane_icp_techrep.pdf)
 #[allow(non_snake_case)]
-#[instrument(skip_all)]
 pub fn estimate_isometry<T>(
     alignee: &mut MaskedPointCloud<T, 3>,
     target: &mut MaskedPointCloud<T, 3>,
     _: usize,
-) -> Isometry3<T>
+) -> Option<Isometry3<T>>
 where
     T: Scalar + RealField + Copy,
 {
@@ -99,7 +97,7 @@ where
     ATA[(5, 3)] = ATA[(3, 5)];
     ATA[(5, 4)] = ATA[(4, 5)];
 
-    if let Some(ATA_inv) = ATA.try_inverse() {
+    ATA.try_inverse().map(|ATA_inv| {
         // Solve A*x = b
         let x = ATA_inv * ATb;
 
@@ -115,10 +113,7 @@ where
             gamma, T::one(), -alpha;
             -beta, alpha, T::one()]),
         )
-    } else {
-        warn!("Failed to invert ATA matrix. Falling back to identity transformation.");
-        Isometry3::identity()
-    }
+    })
 }
 
 pub fn estimate_scale_point_to_plane<'a, T>(

@@ -8,7 +8,7 @@ pub fn estimate_affine<T>(
     alignee: &mut MaskedPointCloud<T, 3>,
     target: &mut MaskedPointCloud<T, 3>,
     _: usize,
-) -> Affine3<T>
+) -> Option<Affine3<T>>
 where
     T: Scalar + RealField + From<f32> + Copy,
 {
@@ -34,29 +34,29 @@ where
         .iter()
         .fold(Matrix3::zeros(), |m, a| m + a * a.transpose());
 
-    let matrix_sum = matrix_sum_inv.try_inverse().unwrap();
+    matrix_sum_inv.try_inverse().map(|matrix_sum| {
+        #[allow(non_snake_case)]
+        let A = matrix_sum * vec_sum2;
 
-    #[allow(non_snake_case)]
-    let A = matrix_sum * vec_sum2;
+        let count = T::from(alignee.len() as f32);
 
-    let count = T::from(alignee.len() as f32);
+        let translation = mean_value_target
+            - alignee
+                .iter()
+                .fold(Vector3::zeros(), |v, pcp| v + A * pcp.pos.coords)
+                * T::one()
+                / count;
 
-    let translation = mean_value_target
-        - alignee
-            .iter()
-            .fold(Vector3::zeros(), |v, pcp| v + A * pcp.pos.coords)
-            * T::one()
-            / count;
+        #[allow(non_snake_case)]
+        let mut M = A
+            .insert_fixed_rows::<1>(3, T::zero())
+            .insert_fixed_columns::<1>(3, T::zero());
 
-    #[allow(non_snake_case)]
-    let mut M = A
-        .insert_fixed_rows::<1>(3, T::zero())
-        .insert_fixed_columns::<1>(3, T::zero());
+        M[12] = translation.x;
+        M[13] = translation.y;
+        M[14] = translation.z;
+        M[15] = T::one();
 
-    M[12] = translation.x;
-    M[13] = translation.y;
-    M[14] = translation.z;
-    M[15] = T::one();
-
-    Affine3::from_matrix_unchecked(M)
+        Affine3::from_matrix_unchecked(M)
+    })
 }
