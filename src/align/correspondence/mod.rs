@@ -2,7 +2,7 @@ mod bidirectional_distance;
 mod cylinder;
 mod nearest_neighbor;
 
-use crate::{MaskedPointCloud, PointCloud, PointCloudPoint};
+use crate::{MaskedPointCloud, PointCloud, filter_points::PointFilter};
 pub use bidirectional_distance::*;
 pub use cylinder::*;
 use kdtree::KdTree;
@@ -24,13 +24,13 @@ where
     /// Every point in this iterator corresponds to the point in the `alignee_point_cloud` with the same index.
     pub corresponding_target_point_cloud: MaskedPointCloud<'t, T, D>,
 
-    /// Iterator over the points of the target that have a corresponcence point in the alignee.
+    /// Iterator over the points of the target that have a corresponding point in the alignee.
     /// (found in the `corresponding_alignee_point_cloud`).
-    /// This is only used by bidrectional distance correspondence estimators.
+    /// This is only used by bidirectional distance correspondence estimators.
     pub target_point_cloud: MaskedPointCloud<'t, T, D>,
 
     /// Every point in this iterator corresponds to the point in the `target_point_cloud` with the same index.
-    /// This is only used by bidrectional distance correspondence estimators.
+    /// This is only used by bidirectional distance correspondence estimators.
     pub corresponding_alignee_point_cloud: MaskedPointCloud<'a, T, D>,
 
     /// Distances between the points of the alignee and the corresponding points in the target.
@@ -39,7 +39,7 @@ where
 
     /// Distances between the points of the target and the corresponding points in the alignee.
     /// Refers to the points in the `target_point_cloud` and `corresponding_alignee_point_cloud`.
-    /// This is only used by bidrectional distance correspondence estimators.
+    /// This is only used by bidirectional distance correspondence estimators.
     pub target_to_alignee_distances: Vec<T>,
 }
 
@@ -98,7 +98,7 @@ where
         filter_points: &mut FP,
     ) -> Correspondences<'b, 't, T, D>
     where
-        FP: FnMut(&PointCloudPoint<T, 3>) -> bool,
+        FP: PointFilter<T, D>,
         'b: 't;
 }
 
@@ -119,7 +119,7 @@ pub fn get_ordered_correspondences_and_distances_nn<'a, 't, T, FP>(
 )
 where
     T: Scalar + RealField + Float + One + Zero,
-    FP: FnMut(&PointCloudPoint<T, 3>) -> bool,
+    FP: PointFilter<T, 3>,
 {
     let mut distances = vec![];
     let mut ordered_indices = vec![];
@@ -129,7 +129,7 @@ where
     for (i, p) in data_set_x
         .iter()
         .enumerate()
-        .filter(|(_, p)| filter_points(*p))
+        .filter(|(_, p)| filter_points.filter(*p))
     {
         let (distance, idx) = tree
             .nearest(p.pos.coords.as_slice(), 1, &squared_euclidean)

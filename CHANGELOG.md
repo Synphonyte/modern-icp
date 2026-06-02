@@ -3,6 +3,12 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.0] - Unreleased
+
+- Updated dependencies rerun and nalgebra
+- Deprecated `estimate_transform` in favor of `Icp::new()` + builder methods
+- Improved docs and readme
+
 ## [0.11.0] - 2026-04-10
 
 - Updated dependencies rerun and kdtree

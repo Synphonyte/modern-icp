@@ -48,12 +48,12 @@ where
 pub fn transform_point_cloud<T, M, const D: usize>(cloud: &mut PointCloud<T, D>, transform: M)
 where
     T: Scalar + RealField + Copy,
-    M: Mul<Point<T, D>, Output = Point<T, D>> + Mul<SVector<T, D>, Output = SVector<T, D>> + Copy,
+    M: Mul<Point<T, D>, Output = Point<T, D>> + Mul<SVector<T, D>, Output = SVector<T, D>> + Clone,
 {
     for point in cloud.iter_mut() {
-        point.pos = transform * point.pos;
+        point.pos = transform.clone() * point.pos;
 
-        point.norm = point.norm.map(|norm| transform * norm);
+        point.norm = point.norm.map(|norm| transform.clone() * norm);
     }
 }
 

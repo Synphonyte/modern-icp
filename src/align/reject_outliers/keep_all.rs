@@ -1,6 +1,5 @@
 use crate::MaskedPointCloud;
-use nalgebra::{RealField, Scalar};
-use num_traits::Float;
+use nalgebra::Scalar;
 
 /// Doesn't reject any points. That means that all points are kept.
 pub fn keep_all<T, const D: usize>(
@@ -9,7 +8,7 @@ pub fn keep_all<T, const D: usize>(
     distances: &[T],
 ) -> Vec<bool>
 where
-    T: Scalar + RealField + From<f32> + Float,
+    T: Scalar + Copy,
 {
     vec![true; distances.len()]
 }

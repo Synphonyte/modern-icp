@@ -5,3 +5,5 @@ pub mod icp;
 pub mod pca;
 pub mod reject_outliers;
 pub mod transform_estimation;
+
+pub use icp::Icp;

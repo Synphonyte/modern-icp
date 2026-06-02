@@ -1,4 +1,5 @@
 use crate::correspondence::{CorrespondenceEstimator, Correspondences};
+use crate::filter_points::PointFilter;
 use crate::{MaskedPointCloud, PointCloud, PointCloudPoint};
 use nalgebra::{Point3, RealField, Scalar, point, vector};
 use num_traits::{Float, One, Zero};
@@ -74,7 +75,7 @@ where
         filter_points: &mut FP,
     ) -> Correspondences<'b, 't, T, 3>
     where
-        FP: FnMut(&PointCloudPoint<T, 3>) -> bool,
+        FP: PointFilter<T, 3>,
         'b: 't,
     {
         let mut point_cloud = self.point_cloud.borrow_mut();
@@ -90,7 +91,7 @@ where
         for (i, p) in alignee
             .iter()
             .enumerate()
-            .filter(|(_, p)| filter_points(*p))
+            .filter(|(_, p)| filter_points.filter(*p))
         {
             let cylinder_intersection = self.compute_intersection_with_cylinder(&p.pos);
 
