@@ -7,11 +7,11 @@ use nalgebra::{Isometry3, RealField, Scalar};
 pub fn is_small_isometry<T>(
     translation_threshold: T,
     angle_threshold: T,
-) -> impl Fn(&[T], &[T], &Isometry3<T>, &mut T) -> bool
+) -> impl Fn(&[T], &[T], &Isometry3<T>, &mut T, usize) -> bool
 where
     T: Scalar + RealField + Copy,
 {
-    move |_: &[T], _: &[T], isometry: &Isometry3<T>, _: &mut T| {
+    move |_: &[T], _: &[T], isometry: &Isometry3<T>, _: &mut T, _: usize| {
         isometry.translation.vector.magnitude_squared() < translation_threshold
             && isometry.rotation.angle() < angle_threshold
     }

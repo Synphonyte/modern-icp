@@ -4,12 +4,14 @@ use num_traits::AsPrimitive;
 
 /// Converge if the sum of the squared distances between the alignee and the target has
 /// decreased by less than `epsilon`.
-pub fn same_squared_distance_error<T, M>(epsilon: T) -> impl Fn(&[T], &[T], &M, &mut T) -> bool
+pub fn same_squared_distance_error<T, M>(
+    epsilon: T,
+) -> impl Fn(&[T], &[T], &M, &mut T, usize) -> bool
 where
     T: Scalar + RealField + Copy,
     usize: AsPrimitive<T>,
 {
-    move |distances_target: &[T], distances_alignee: &[T], _: &M, error: &mut T| {
+    move |distances_target: &[T], distances_alignee: &[T], _: &M, error: &mut T, _: usize| {
         let sum_squared_distances_fn =
             |distances: &[T]| -> T { sum_squared_distances(distances, None) };
 

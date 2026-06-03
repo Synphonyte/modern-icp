@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Updated dependencies rerun and nalgebra
 - Deprecated `estimate_transform` in favor of `Icp::new()` + builder methods
+- `is_converged` functions now also take the step as parameter
 - Improved docs and readme
 
 ## [0.11.0] - 2026-04-10

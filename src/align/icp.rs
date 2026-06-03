@@ -363,6 +363,7 @@ where
                 &target_to_alignee_distances,
                 &step_transform,
                 &mut distance_error,
+                i,
             ) {
                 break;
             }
@@ -637,7 +638,7 @@ where
     /// ```
     pub fn is_converged<IC>(self, is_converged: IC) -> Icp<'a, T, M, TG, CE, ET, IC, D, FP, RO>
     where
-        IC: FnMut(&[T], &[T], &M, &mut T) -> bool,
+        IC: FnMut(&[T], &[T], &M, &mut T, usize) -> bool,
     {
         Icp {
             max_iterations: self.max_iterations,
@@ -702,7 +703,7 @@ where
     FP: FnMut(&PointCloudPoint<T, 3>) -> bool,
     RO: FnMut(&mut MaskedPointCloud<T, 3>, &mut MaskedPointCloud<T, 3>, &[T]) -> Vec<bool>,
     ET: FnMut(&mut MaskedPointCloud<T, 3>, &mut MaskedPointCloud<T, 3>, usize) -> Option<M>,
-    IC: FnMut(&[T], &[T], &M, &mut T) -> bool,
+    IC: FnMut(&[T], &[T], &M, &mut T, usize) -> bool,
 {
     Icp::new()
         .max_iterations(max_iterations)
