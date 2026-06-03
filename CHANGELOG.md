@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Deprecated `estimate_transform` in favor of `Icp::new()` + builder methods
 - `is_converged` functions now also take the step as parameter
 - Improved docs and readme
+- Added `is_almost_identity_affine3`, `is_almost_identity_matrix3`, `is_almost_identity_matrix4` convergence criteria
 
 ## [0.11.0] - 2026-04-10
 
