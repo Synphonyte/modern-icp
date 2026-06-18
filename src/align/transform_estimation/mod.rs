@@ -16,10 +16,10 @@ pub trait TransformEstimator<T, M, const D: usize>
 where
     T: Debug + Scalar + Copy,
 {
-    fn estimate<'a, 'b, 'c>(
-        &'a mut self,
-        alignee: &'b mut MaskedPointCloud<T, D>,
-        target: &'c mut MaskedPointCloud<T, D>,
+    fn estimate(
+        &mut self,
+        alignee: &mut MaskedPointCloud<T, D>,
+        target: &mut MaskedPointCloud<T, D>,
         step: usize,
     ) -> Option<M>;
 }
@@ -29,10 +29,10 @@ where
     F: FnMut(&mut MaskedPointCloud<T, D>, &mut MaskedPointCloud<T, D>, usize) -> Option<M>,
     T: Debug + Scalar + Copy,
 {
-    fn estimate<'a, 'b, 'c>(
-        &'a mut self,
-        alignee: &'b mut MaskedPointCloud<T, D>,
-        target: &'c mut MaskedPointCloud<T, D>,
+    fn estimate(
+        &mut self,
+        alignee: &mut MaskedPointCloud<T, D>,
+        target: &mut MaskedPointCloud<T, D>,
         step: usize,
     ) -> Option<M> {
         self(alignee, target, step)
